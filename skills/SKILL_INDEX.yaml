@@ -1,0 +1,8 @@
+# Agent Skills Index (auto-generated)
+# Do not edit manually — run: python scripts/sync-index.py sync
+#     or via wrapper: ./scripts/skill-manager sync
+#
+# Source of truth: SKILL.md frontmatter + skills-lock.json
+
+skills: []
+
