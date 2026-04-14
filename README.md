@@ -1,5 +1,11 @@
 # Agent Resources
 
+![Tests](https://img.shields.io/badge/tests-208%2F208-brightgreen)
+![Lint](https://img.shields.io/badge/ruff-clean-brightgreen)
+![VSDD](https://img.shields.io/badge/VSDD-converged-blue)
+![Python](https://img.shields.io/badge/python-3.14-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 Agent skills management — install, index, search, validate, update. Follows the [AgentSkills](https://agentskills.io) spec.
 
 ## Quick Start
