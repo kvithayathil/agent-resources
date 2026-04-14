@@ -4,5 +4,116 @@
 #
 # Source of truth: SKILL.md frontmatter + skills-lock.json
 
-skills: []
+skills:
+- name: android-compose-ui
+  description: 'Compose UI patterns for Android/KMP - stability, recomposition, side effects, lazy lists, animations, previews, accessibility, modifier extensions, and design system composables. Use this
+    skill whenever writing or reviewing composables, optimizing recomposition, adding animations, creating previews, writing custom modifiers, structuring a design system, or making any Compose UI decision
+    beyond the MVI/ViewModel layer. Trigger on phrases like "composable", "recomposition", "LaunchedEffect", "Modifier", "LazyColumn", "preview", "animation", "design system", "stability", "contentDescription",
+    "graphicsLayer", "slot API", or "Compose performance".
+
+    '
+  path: android/android-compose-ui
+  token_estimate: 1624
+- name: android-data-layer
+  description: 'Data layer patterns for Android/KMP - data sources, repositories, DTOs, mappers, Room entities, Ktor HttpClient, safe call helpers, token storage, and offline-first. Use this skill whenever
+    writing or reviewing a data source or repository, creating DTOs or Room entities, writing mappers, setting up the Ktor HttpClient, handling network errors, or implementing token refresh. Trigger on
+    phrases like "create a repository", "create a data source", "add a DAO", "Ktor client", "write a mapper", "DTO", "Room entity", "network call", "token storage", or "offline-first".
+
+    '
+  path: android/android-data-layer
+  token_estimate: 1394
+- name: android-di-koin
+  description: 'Koin dependency injection setup for Android/KMP - module definitions per layer, ViewModel injection, assembling modules in :app, and koinViewModel() in composables. Use this skill whenever
+    setting up Koin, defining a DI module, providing a repository or ViewModel, injecting a dependency, or wiring modules in the Application class. Trigger on phrases like "set up Koin", "add a Koin module",
+    "inject a dependency", "DI module", "koinViewModel", "provide a ViewModel", "startKoin", or "single/viewModel/factory".
+
+    '
+  path: android/android-di-koin
+  token_estimate: 817
+- name: android-error-handling
+  description: 'Generic Result wrapper, error types, and extension helpers for Android/KMP - Result<T, E>, DataError, EmptyResult, map, onSuccess, onFailure. Use this skill whenever defining error types,
+    creating a Result wrapper, handling success/failure flows, mapping errors, or working with typed errors anywhere in the app (not just data layer — also validation, auth, domain logic). Trigger on phrases
+    like "Result wrapper", "error handling", "DataError", "onSuccess", "onFailure", "EmptyResult", "map result", "error type", "validation error", or "typed errors".
+
+    '
+  path: android/android-error-handling
+  token_estimate: 1826
+- name: android-module-structure
+  description: Module layout, dependency rules, and Gradle convention plugins for Android and Kotlin Multiplatform (KMP) projects. Use this skill whenever setting up a new Android/KMP project, deciding
+    where a new module should live, asking "how should I structure this", creating a new feature module, adding a core submodule, configuring Gradle convention plugins, working with version catalogs, or
+    making any decision about project-level architecture. Trigger on phrases like "set up the project", "add a module", "create a feature", "how should I structure", "project structure", "convention plugin",
+    "build-logic", or "where does X live".
+  path: android/android-module-structure
+  token_estimate: 995
+- name: android-navigation
+  description: 'Type-safe Compose Navigation for Android/KMP - route objects, feature nav graphs, cross-feature callbacks, and wiring in :app. Use this skill whenever setting up navigation, defining routes,
+    adding a new screen to a nav graph, navigating between features, or wiring nav graphs in the app module. Trigger on phrases like "set up navigation", "add a route", "navigate between screens", "nav
+    graph", "NavController", "type-safe nav", "cross-feature navigation", or "NavGraphBuilder".
+
+    '
+  path: android/android-navigation
+  token_estimate: 733
+- name: android-presentation-mvi
+  description: 'MVI presentation layer for Android/KMP - State, Action, Event, ViewModel, Root/Screen composable split, UI models, UiText error mapping, and process death with SavedStateHandle. Use this
+    skill whenever creating or reviewing a ViewModel, defining screen state, actions, or events, structuring composables, mapping errors to UI strings, or handling process death. Trigger on phrases like
+    "add a ViewModel", "create a screen", "MVI", "state", "action", "event", "screen composable", "UiText", "SavedStateHandle", "ObserveAsEvents", or "UI model".
+
+    '
+  path: android/android-presentation-mvi
+  token_estimate: 1864
+- name: android-testing
+  description: 'Testing patterns for Android/KMP - ViewModel unit tests with JUnit5, Turbine, AssertK, UnconfinedTestDispatcher, fake repositories, SavedStateHandle, and Compose UI tests. Use this skill
+    whenever writing or reviewing tests for ViewModels, repositories, use cases, or Compose screens. Trigger on phrases like "write a test", "unit test the ViewModel", "test a repository", "Turbine", "fake
+    repository", "UnconfinedTestDispatcher", "runTest", "ComposeTestRule", or "JUnit5".
+
+    '
+  path: android/android-testing
+  token_estimate: 1440
+- name: vdd
+  description: 'Verification-Driven Development. Use when writing implementation code, refactoring, fixing bugs, or any task where correctness matters. Enforces a verify-before-trust discipline: every piece
+    of behavior must have a verifiable check before it is considered done. Triggers on: verify, validation, correctness, testing, TDD, acceptance criteria, specification, contract, invariant, property-based.
+
+    '
+  path: vdd
+  tags:
+  - development
+  - verification
+  - testing
+  - correctness
+  - methodology
+  license: Apache-2.0
+  metadata:
+    author: kvithayathil
+    version: 1.0.0
+    living: 'true'
+    self-learning: 'true'
+    self-updating: 'true'
+    update-policy: evolve-on-evidence
+    last-reviewed: '2026-04-14'
+  version: 1.0.0
+  token_estimate: 1984
+- name: vsdd
+  description: 'Verification-Driven System Design. Use when designing systems, architectures, APIs, data models, service boundaries, or any cross-cutting structural decision. Extends VDD principles to the
+    system level: every architectural decision must be verifiable against stated requirements and constraints before it is committed. Triggers on: architecture, system design, design review, API design,
+    data model, service boundary, migration plan, tech spec, RFC, architectural decision record, ADR.
+
+    '
+  path: vsdd
+  tags:
+  - architecture
+  - system-design
+  - verification
+  - design-review
+  - methodology
+  license: Apache-2.0
+  metadata:
+    author: kvithayathil
+    version: 1.0.0
+    living: 'true'
+    self-learning: 'true'
+    self-updating: 'true'
+    update-policy: evolve-on-evidence
+    last-reviewed: '2026-04-14'
+  version: 1.0.0
+  token_estimate: 2353
 

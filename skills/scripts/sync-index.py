@@ -240,14 +240,10 @@ def validate_skill(skill_dir: Path) -> list[str]:
 def validate_all_skills(skill_dirs: list[Path] | None = None) -> dict[str, list[str]]:
     """Validate specified skills or all skills. Returns {name: [errors]}."""
     if skill_dirs is None:
-        skill_dirs = [
-            child
-            for child in sorted(SKILLS_DIR.iterdir())
-            if child.is_dir() and not child.name.startswith(".") and child.name not in EXCLUDED_DIRS
-        ]
+        skill_dirs = _discover_skill_dirs()
     results: dict[str, list[str]] = {}
     for d in skill_dirs:
-        results[d.name] = validate_skill(d)
+        results[str(d.relative_to(SKILLS_DIR))] = validate_skill(d)
     return results
 
 
@@ -285,30 +281,38 @@ def estimate_tokens(skill_md: Path) -> int:
 # ---------------------------------------------------------------------------
 
 
+def _discover_skill_dirs() -> list[Path]:
+    """Walk skills/ recursively, returning directories containing SKILL.md."""
+    found: list[Path] = []
+    for child in sorted(SKILLS_DIR.rglob("SKILL.md")):
+        parent = child.parent
+        rel = parent.relative_to(SKILLS_DIR)
+        if any(part.startswith(".") or part in EXCLUDED_DIRS for part in rel.parts):
+            continue
+        found.append(parent)
+    return found
+
+
 def scan_skills() -> list[dict]:
     lock_data = load_lock()
     entries: list[dict] = []
-    for child in sorted(SKILLS_DIR.iterdir()):
-        if not child.is_dir() or child.name.startswith(".") or child.name in EXCLUDED_DIRS:
-            continue
-        skill_md = child / "SKILL.md"
-        if not skill_md.exists():
-            print(f"WARNING: {child.name}/ has no SKILL.md, skipping", file=sys.stderr)
-            continue
+    for skill_dir in _discover_skill_dirs():
+        rel = skill_dir.relative_to(SKILLS_DIR)
+        skill_md = skill_dir / "SKILL.md"
         fm = parse_frontmatter(skill_md)
         if fm is None:
-            print(f"WARNING: {child.name}/SKILL.md invalid frontmatter, skipping", file=sys.stderr)
+            print(f"WARNING: {rel}/SKILL.md invalid frontmatter, skipping", file=sys.stderr)
             continue
         if not fm.get("name"):
-            print(f"WARNING: {child.name}/SKILL.md missing 'name', skipping", file=sys.stderr)
+            print(f"WARNING: {rel}/SKILL.md missing 'name', skipping", file=sys.stderr)
             continue
         if not fm.get("description"):
-            print(f"WARNING: {child.name}/SKILL.md missing 'description', skipping", file=sys.stderr)
+            print(f"WARNING: {rel}/SKILL.md missing 'description', skipping", file=sys.stderr)
             continue
-        if fm["name"] != child.name:
-            print(f"WARNING: {child.name}/ name mismatch — '{fm['name']}' vs dir '{child.name}'", file=sys.stderr)
+        if fm["name"] != skill_dir.name:
+            print(f"WARNING: {rel}/ name mismatch — '{fm['name']}' vs dir '{skill_dir.name}'", file=sys.stderr)
 
-        entry: dict = {"name": fm["name"], "description": fm["description"], "path": child.name}
+        entry: dict = {"name": fm["name"], "description": fm["description"], "path": str(rel)}
         for field in ("triggers", "tags"):
             if field in fm:
                 entry[field] = fm[field]
