@@ -350,7 +350,8 @@ VSDD (Verified Spec-Driven Development) pipeline tracking via Chainlink. All OWA
 | Original spec-driven tests | 172 | GREEN |
 | Phase 5 fuzz + purity tests | 28 | GREEN |
 | CUSTOM_RULES stage tests | 8 | GREEN |
-| **Total** | **208** | **GREEN** |
+| sync-index.py unit tests | 97 | GREEN (1 skipped: case-insensitive FS) |
+| **Total** | **305** | **GREEN** |
 
 ### OWASP Mitigation → Module Mapping
 
@@ -397,7 +398,7 @@ EFFECTFUL SHELL (I/O, mutation, external deps):
 | Dimension | Signal |
 |:----------|:-------|
 | **Spec** | CONVERGED — adversary down to wording nitpicks |
-| **Tests** | CONVERGED — 208/208 green, hypothesis fuzz testing passed |
+| **Tests** | CONVERGED — 305/305 green, hypothesis fuzz testing passed |
 | **Implementation** | CONVERGED — all findings fixed |
 | **Verification** | CONVERGED — hypothesis fuzz + purity audit accepted as Python-appropriate. Formal proofs N/A for Python. Mutation testing deferred (mutmut 3.5.0 tooling bug). |
 
@@ -411,7 +412,7 @@ All four tasks from the CI/CD automation plan implemented:
 
 | Task | Deliverable | Status |
 |:-----|:-----------|:-------|
-| T1 | `.github/workflows/check.yml` — 7 parallel jobs (lint, typecheck, test, test-security, audit, validate, deadcode) | DONE |
+| T1 | `.github/workflows/check.yml` — 8 parallel jobs (lint, typecheck, test, test-security, audit, validate, deadcode, sast) | DONE |
 | T2 | `.gitlab-ci.yml` — same check matrix, GitLab-native | DONE |
 | T3 | README badges updated — live CI status + AGPL-3.0 | DONE |
 | T4 | `.gitignore` updated — uv-cache, hypothesis artifacts | DONE |
@@ -423,9 +424,9 @@ All four tasks from the CI/CD automation plan implemented:
 | StrEnum migration | 8 enums migrated from `(str, Enum)` to `StrEnum` (Python 3.12+) — ruff UP042 clean |
 | License | GPL-3.0 → AGPL-3.0-only (pyproject.toml + LICENSE file) |
 | Ruff clean | `uv run ruff check . --exclude mutants` = All checks passed |
-| Tests | 208/208 GREEN (verified post-migration) |
+| Tests | 305/305 GREEN (verified post-migration) |
 | Type fix | `is_path_allowed` return type corrected `str` → `bool` (permissions.py:40) |
-| CI green | PR #2 merged after all 7 CI jobs passing |
+| CI green | PR #2 merged after all CI jobs passing |
 
 **CI pipeline coverage:**
 
@@ -435,11 +436,12 @@ GitHub Actions / GitLab CI
 ├── lint:security        — ruff check (security_layer, mutants excluded)
 ├── typecheck:skills     — basedpyright (skills/scripts)
 ├── typecheck:security   — basedpyright (security_layer)
-├── test:skills          — pytest 33 tests (skills/scripts/tests/)
+├── test:skills          — pytest 97 tests (skills/scripts)
 ├── test:security        — pytest 208 tests (security_layer)
 ├── audit                — pip-audit (skills/scripts)
 ├── validate             — sync-index.py validate (skills/scripts)
-└── deadcode             — vulture (skills/scripts)
+├── deadcode             — vulture (skills/scripts)
+└── sast                 — bandit (skills/scripts)
 ```
 
 ### Skills Management — 2026-04-17
@@ -465,7 +467,7 @@ GitHub Actions / GitLab CI
 **Self-learning skills (vdd/vsdd):**
 
 | Skill | Focus | Self-learning |
-|:------|:------|:-------------|
+|:------|:------|:--------------|
 | vdd | Verification-Driven Development — code-level correctness | Yes |
 | vsdd | Verification-Driven System Design — architecture-level | Yes |
 
@@ -481,14 +483,23 @@ GitHub Actions / GitLab CI
 **Global skills installed (`~/.agents/skills/`):**
 
 obra/superpowers (14 skills), addyosmani/spec-driven-development, find-skills, kotlin-patterns, compose-multiplatform-patterns, svelte-components, writing-svelte5, owasp-security, tdd, code-review-quality
+
+```
 GitHub Actions / GitLab CI
 ├── lint:skills          — ruff check + format (skills/scripts)
 ├── lint:security        — ruff check (security_layer, mutants excluded)
 ├── typecheck:skills     — basedpyright (skills/scripts)
 ├── typecheck:security   — basedpyright (security_layer)
-├── test:skills          — pytest (skills/scripts)
+├── test:skills          — pytest 97 tests (skills/scripts)
 ├── test:security        — pytest 208 tests (security_layer)
 ├── audit                — pip-audit (skills/scripts)
 ├── validate             — sync-index.py validate (skills/scripts)
-└── deadcode             — vulture (skills/scripts)
+├── deadcode             — vulture (skills/scripts)
+└── sast                 — bandit (skills/scripts)
+```
+├── test:security        — pytest 208 tests (security_layer)
+├── audit                — pip-audit (skills/scripts)
+├── validate             — sync-index.py validate (skills/scripts)
+├── deadcode             — vulture (skills/scripts)
+└── sast                 — bandit (skills/scripts)
 ```

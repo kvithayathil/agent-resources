@@ -36,7 +36,7 @@ typecheck:security:
 test:skills:
   extends: .linux
   script:
-    - cd skills/scripts && uv sync && (uv run pytest -x -q || [ $? -eq 5 ])
+    - cd skills/scripts && uv sync && uv run pytest -x -q
 
 test:security:
   extends: .linux
@@ -57,3 +57,8 @@ deadcode:
   extends: .linux
   script:
     - cd skills/scripts && uv sync && uv run vulture sync-index.py
+
+sast:
+  extends: .linux
+  script:
+    - cd skills/scripts && uv sync && uv run bandit -r sync-index.py -ll
