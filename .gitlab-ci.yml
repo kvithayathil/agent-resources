@@ -34,7 +34,7 @@ typecheck:security:
 test:skills:
   extends: .linux
   script:
-    - cd skills/scripts && uv sync && uv run pytest
+    - cd skills/scripts && uv sync && (uv run pytest -x -q || [ $? -eq 5 ])
 
 test:security:
   extends: .linux

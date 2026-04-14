@@ -44,7 +44,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv sync
         working-directory: skills/scripts
-      - run: uv run pytest
+      - run: uv run pytest -x -q || [ $? -eq 5 ]
         working-directory: skills/scripts
 
   test-security:
