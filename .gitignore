@@ -7,3 +7,8 @@ __pycache__/
 *.pyc
 .venv/
 .ruff_cache/
+.chainlink/
+.mcp.json
+.claude/
+.pytest_cache/
+uv.lock
