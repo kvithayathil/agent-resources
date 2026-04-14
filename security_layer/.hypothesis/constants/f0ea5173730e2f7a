@@ -1,0 +1,4 @@
+# file: /Users/kurian/03 - Resources/agent-resources/security_layer/incident.py
+# hypothesis_version: 6.151.14
+
+['ACKNOWLEDGE', 'ALERT', 'CLEAR', 'DEGRADED', 'ESCALATE', 'LOCKED', 'MITIGATION_FAILURE', 'NORMAL', 'acknowledged_by', 'alert_reason', 'critical', 'escalated', 'escalation_reason', 'high', 'unknown', 'unknown failure']

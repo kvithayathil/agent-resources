@@ -9,7 +9,7 @@ The orchestrator passes structured JSON metadata only, never raw untrusted conte
 """
 
 import pytest
-from security_layer.types import (
+from security_layer.models import (
     ToolPermission,
     TaintFlag,
     ContentClassification,

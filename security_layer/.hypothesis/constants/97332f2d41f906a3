@@ -1,0 +1,4 @@
+# file: /Users/kurian/03 - Resources/agent-resources/security_layer/.venv/bin/pytest
+# hypothesis_version: 6.151.14
+
+['-script.pyw', '.exe', '__main__']

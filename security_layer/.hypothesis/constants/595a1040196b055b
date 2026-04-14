@@ -1,0 +1,4 @@
+# file: /Users/kurian/03 - Resources/agent-resources/security_layer/models.py
+# hypothesis_version: 6.151.14
+
+[0.0, 4.0, 10.0, 500000, 'BASH', 'CLEAN', 'DAN mode', 'GLOB', 'GREP', 'READ', 'SUSPECTED_INJECTION', 'TRUSTED', 'UNTRUSTED', 'UNTRUSTED_EXTERNAL', 'WEBFETCH', 'WRITE', 'act as', 'api_delete', 'api_post', 'api_put', 'bulk_operation', 'credential_operation', 'developer mode', 'disregard', 'forget everything', 'git_force_push', 'git_push', 'git_rebase', 'ignore above', 'ignore previous', 'jailbreak', 'new instructions', 'pretend you are', 'role change', 'shell_delete', 'shell_drop', 'shell_rm', 'shell_truncate', 'system override', 'you are now']

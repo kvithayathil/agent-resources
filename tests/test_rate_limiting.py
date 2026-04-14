@@ -11,7 +11,7 @@ from security_layer.budget import (
     record_success,
     record_tool_call,
 )
-from security_layer.types import BudgetLimits, BudgetState
+from security_layer.models import BudgetLimits, BudgetState
 
 
 class TestCheckBudget:

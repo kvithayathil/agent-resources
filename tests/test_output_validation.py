@@ -9,7 +9,7 @@ from security_layer.output_validation import (
     validate_output,
     validate_schema,
 )
-from security_layer.types import PIIEntity, ValidationResult
+from security_layer.models import PIIEntity, ValidationResult
 
 
 class TestOutputValidation:

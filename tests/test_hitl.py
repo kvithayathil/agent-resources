@@ -17,7 +17,7 @@ from security_layer.hitl import (
     process_destructive_action,
     request_approval,
 )
-from security_layer.types import DESTRUCTIVE_ACTIONS, HITLRequest
+from security_layer.models import DESTRUCTIVE_ACTIONS, HITLRequest
 
 
 class TestIsDestructive:

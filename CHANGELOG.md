@@ -7,10 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Implement scanning.py CUSTOM_RULES stage (#8)
 
 ### Fixed
 
 ### Changed
+- LLM Security Mitigation Stack — Team/Organizational (#1)
+- Roast: Security Mitigation Spec (#6)
 - Spec: Non-Functional Requirements — Performance & Ops (#5)
 - Spec: Edge Case Catalog — LLM Attack Vectors (#4)
 - Spec: Verification Architecture — Purity Boundaries & Tooling (#3)

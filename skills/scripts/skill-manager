@@ -38,6 +38,7 @@ Commands:
   search <query>               Fuzzy search skills by task description
   lookup <name>                Exact skill lookup by name
   tag <tag>                    Filter skills by tag
+  tokens                       Show token estimates for all skills
   list                         List all installed skills
   help                         Show this help
 
@@ -91,6 +92,10 @@ case "${1:-help}" in
     tag|t)
         shift
         python3 "$SYNC_SCRIPT" tag "$@"
+        ;;
+    tokens|tok)
+        shift
+        python3 "$SYNC_SCRIPT" tokens "$@"
         ;;
     list|ls)
         shift

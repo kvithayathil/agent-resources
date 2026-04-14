@@ -252,6 +252,35 @@ def validate_all_skills(skill_dirs: list[Path] | None = None) -> dict[str, list[
 
 
 # ---------------------------------------------------------------------------
+# Token estimation
+# ---------------------------------------------------------------------------
+
+_encoder = None
+
+
+def _get_encoder():
+    global _encoder
+    if _encoder is None:
+        import tiktoken
+
+        _encoder = tiktoken.get_encoding("cl100k_base")
+    return _encoder
+
+
+def estimate_tokens(skill_md: Path) -> int:
+    text = skill_md.read_text(encoding="utf-8")
+    if not text.startswith("---"):
+        return len(_get_encoder().encode(text))
+    end = text.find("---", 3)
+    if end == -1:
+        return len(_get_encoder().encode(text))
+    body = text[end + 3 :].strip()
+    if not body:
+        return 0
+    return len(_get_encoder().encode(body))
+
+
+# ---------------------------------------------------------------------------
 # Scanning & indexing
 # ---------------------------------------------------------------------------
 
@@ -288,6 +317,8 @@ def scan_skills() -> list[dict]:
                 entry[field] = fm[field]
         if isinstance(fm.get("metadata"), dict) and "version" in fm["metadata"]:
             entry["version"] = fm["metadata"]["version"]
+
+        entry["token_estimate"] = estimate_tokens(skill_md)
 
         lock_entry = lock_data.get(fm["name"], {})
         if lock_entry:
@@ -478,6 +509,22 @@ def cmd_tag(args: argparse.Namespace) -> None:
             print(f"  {r['name']}: {r['description']}")
 
 
+def cmd_tokens(args: argparse.Namespace) -> None:
+    skills = load_index() or scan_skills()
+    if args.format == "json":
+        print(json.dumps(skills, indent=2))
+    else:
+        total = 0
+        rows = []
+        for s in sorted(skills, key=lambda x: x.get("token_estimate", 0), reverse=True):
+            est = s.get("token_estimate", 0)
+            total += est
+            rows.append((s["name"], est))
+        for name, est in rows:
+            print(f"  {name}: ~{est:,} tokens")
+        print(f"\n  Total: ~{total:,} tokens across {len(skills)} skill(s)")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Skill index manager")
     sub = parser.add_subparsers(dest="command")
@@ -501,6 +548,9 @@ def main() -> None:
     t.add_argument("tag", help="Tag to filter by")
     t.add_argument("--format", choices=["text", "json"], default="text")
 
+    tok = sub.add_parser("tokens", help="Show token estimates for all skills")
+    tok.add_argument("--format", choices=["text", "json"], default="text")
+
     args = parser.parse_args()
     match args.command:
         case "sync" | None:
@@ -513,6 +563,8 @@ def main() -> None:
             cmd_lookup(args)
         case "tag":
             cmd_tag(args)
+        case "tokens":
+            cmd_tokens(args)
         case _:
             parser.print_help()
 

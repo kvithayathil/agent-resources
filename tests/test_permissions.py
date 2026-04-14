@@ -6,7 +6,7 @@ All tests are written to FAIL until implementation exists in security_layer.perm
 import pytest
 
 from security_layer.state_machine import InvalidTransition
-from security_layer.types import (
+from security_layer.models import (
     AgentCapabilities,
     TaintFlag,
     ToolPermission,
@@ -143,13 +143,35 @@ class TestPathSecurity:
         assert check_path_traversal(path) is True
         assert is_path_allowed(path, workspace_root) is False
 
-    def test_symlink_escape_detected(self):
+    def test_symlink_escape_detected(self, tmp_path):
         """Symlink pointing outside workspace should be detected."""
+        import os
+
         from security_layer.permissions import is_symlink_escape
 
-        symlink_path = "/workspace/data/external_link"
-        workspace_root = "/workspace"
-        assert is_symlink_escape(symlink_path, workspace_root) is True
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        external = tmp_path / "external"
+        external.mkdir()
+        external_file = external / "secret.txt"
+        external_file.write_text("secret")
+        symlink_path = workspace / "escape_link"
+        os.symlink(str(external_file), str(symlink_path))
+        assert is_symlink_escape(str(symlink_path), str(workspace)) is True
+
+    def test_symlink_inside_workspace_passes(self, tmp_path):
+        """Symlink pointing inside workspace should not be flagged."""
+        import os
+
+        from security_layer.permissions import is_symlink_escape
+
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        real_file = workspace / "real.txt"
+        real_file.write_text("data")
+        symlink_path = workspace / "link.txt"
+        os.symlink(str(real_file), str(symlink_path))
+        assert is_symlink_escape(str(symlink_path), str(workspace)) is False
 
 
 class TestTaintTracking:

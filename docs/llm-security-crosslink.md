@@ -325,3 +325,78 @@ ONGOING (operational):
   ├── Red team exercises (garak, Giskard, inspect_ai)
   └── Stay current on prompt injection research
 ```
+
+---
+
+## Implementation Status — Security Layer (`security_layer/`)
+
+VSDD (Verified Spec-Driven Development) pipeline tracking via Chainlink. All OWASP mitigations mapped to implemented modules.
+
+### Pipeline Progress
+
+| VSDD Phase | Status | Evidence |
+|:-----------|:-------|:---------|
+| **Phase 1 — Spec Crystallization** | COMPLETE | #2-#5 closed (behavioral contract, verification architecture, edge cases, NFRs) |
+| **Phase 2 — TDD Implementation** | COMPLETE | 172 tests, all GREEN |
+| **Phase 3 — Adversarial Roast** | COMPLETE | #6 closed — 18/18 findings addressed (10 original + 8 secondary) |
+| **Phase 4 — Feedback Integration** | COMPLETE | All findings fixed, deferred items resolved |
+| **Phase 5 — Formal Hardening** | COMPLETE | #7 closed — 28 hypothesis fuzz tests passed, purity boundary audited. Mutation testing deferred (mutmut 3.5.0 crash, tooling defect). Formal proofs N/A for Python; property-based fuzz accepted as language-appropriate verification. |
+| **Phase 6 — Convergence** | CONVERGED | All four dimensions met. See Convergence Check below. |
+
+### Test Coverage
+
+| Suite | Count | Status |
+|:------|:------|:-------|
+| Original spec-driven tests | 172 | GREEN |
+| Phase 5 fuzz + purity tests | 28 | GREEN |
+| CUSTOM_RULES stage tests | 8 | GREEN |
+| **Total** | **208** | **GREEN** |
+
+### OWASP Mitigation → Module Mapping
+
+| OWASP Risk | Mitigation Module | Status |
+|:-----------|:------------------|:-------|
+| LLM01 (Prompt Injection) | `classifier.py`, `output_validation.py`, `scanning.py` (CUSTOM_RULES) | Implemented + fuzzed |
+| LLM02 (Info Disclosure) | `pii.py` (Presidio), `output_validation.py` | Implemented |
+| LLM03 (Supply Chain) | `scanning.py` (pip-audit stage) | Implemented |
+| LLM04 (Data Poisoning) | `scanning.py` (GARAK stage) | Implemented |
+| LLM05 (Output Handling) | `output_validation.py` | Implemented + fuzzed |
+| LLM06 (Excessive Agency) | `permissions.py`, `trifecta.py` | Implemented + fuzzed |
+| LLM07 (System Prompt Leakage) | `output_validation.py` (injection detection) | Implemented |
+| LLM08 (Embedding Weaknesses) | Not in scope (no RAG) | — |
+| LLM09 (Misinformation) | `output_validation.py` (schema validation) | Implemented |
+| LLM10 (Unbounded Consumption) | `budget.py` | Implemented + fuzzed |
+
+### Purity Boundary Map
+
+```
+PURE CORE (no I/O, deterministic, fuzz-tested):
+  ├── budget.py            — check_budget, add_tokens, estimate_cost, check_daily_budget
+  ├── output_validation.py — check_injection_patterns, validate_schema, strip_external_urls
+  ├── models.py            — all frozen dataclasses (structural invariants verified)
+  ├── state_machine.py     — generic StateMachine[S,E,C] transitions
+  ├── permissions.py       — check_path_traversal, can_flow_to_destructive
+  ├── trifecta.py          — check_trifecta_violation, create_sub_agent
+  └── scanning.py          — CUSTOM_RULES stage (regex matching, no I/O)
+
+EFFECTFUL SHELL (I/O, mutation, external deps):
+  ├── pii.py               — detect_pii (Presidio analyzer), redact_pii (pure)
+  ├── scanning.py          — SEMGREP stage (file read), check_no_secrets_in_prompts (file read)
+  └── hitl.py              — request_approval/approve/deny (module-level dict mutation)
+```
+
+### Outstanding Work Items
+
+| # | Item | Severity | Status |
+|---|------|----------|--------|
+| 1 | OSS license attribution (pip-licenses) | Low | **DONE** — `docs/THIRD_PARTY_LICENSES.md` |
+| 2 | Pre-existing ruff lint (unused imports, StrEnum migration) | Low | **DONE** — 24 issues fixed, `ruff check` clean |
+
+### Convergence Check
+
+| Dimension | Signal |
+|:----------|:-------|
+| **Spec** | CONVERGED — adversary down to wording nitpicks |
+| **Tests** | CONVERGED — 208/208 green, hypothesis fuzz testing passed |
+| **Implementation** | CONVERGED — all findings fixed |
+| **Verification** | CONVERGED — hypothesis fuzz + purity audit accepted as Python-appropriate. Formal proofs N/A for Python. Mutation testing deferred (mutmut 3.5.0 tooling bug). |

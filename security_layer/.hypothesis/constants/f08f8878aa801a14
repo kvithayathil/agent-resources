@@ -1,0 +1,4 @@
+# file: /Users/kurian/03 - Resources/agent-resources/security_layer/output_validation.py
+# hypothesis_version: 6.151.14
+
+[0.0, 0.8, 100000, 'DAN\\s+mode', 'EMAIL', 'Empty output', 'Invalid JSON output', 'No new PII detected', 'PHONE', 'SYSTEM:', 'Schema is not a dict', '^SYSTEM:', '^system:', 'act\\s+as', 'array', 'boolean', 'confidence', 'data:', 'database', 'developer\\s+mode', 'disregard', 'downstream', 'end', 'entity_type', 'forget\\s+everything', 'found_entities', 'ignore\\s+above', 'ignore\\s+previous', 'injection', 'integer', 'jailbreak', 'new\\s+instructions', 'new_entities', 'number', 'object', 'original_length', 'patterns', 'pii', 'pretend\\s+you\\s+are', 'properties', 'required', 'role\\s+change', 'schema', 'shell', 'start', 'string', 'system:', 'system\\s*override', 'target', 'text', 'truncated_length', 'type', 'you\\s+are\\s+now']

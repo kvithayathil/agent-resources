@@ -1,7 +1,7 @@
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 S = TypeVar("S", bound=Enum)
 E = TypeVar("E", bound=Enum)
@@ -15,7 +15,7 @@ class InvalidTransition(Exception):
 
 
 @dataclass
-class StateMachine(Generic[S, E, C]):
+class StateMachine[S: Enum, E: Enum, C]:
     transitions: dict[tuple[S, E], tuple[S, Action[C]]] = field(default_factory=dict)
 
     def add_transition(

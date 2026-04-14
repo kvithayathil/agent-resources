@@ -6,7 +6,7 @@ from security_layer.classifier import (
     is_injection_pattern,
     normalize_unicode,
 )
-from security_layer.types import (
+from security_layer.models import (
     ContentClassification,
     ClassificationResult,
     INJECTION_PATTERNS,

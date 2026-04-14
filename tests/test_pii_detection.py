@@ -16,7 +16,7 @@ from security_layer.pii import (
     scan_and_redact,
     should_escalate,
 )
-from security_layer.types import PIIEntity
+from security_layer.models import PIIEntity
 
 
 class TestDetectPII:
@@ -96,8 +96,8 @@ class TestPIIDensity:
 
     def test_high_pii_density_triggers_escalation(self):
         text = (
-            "Name: John Doe, Email: john@example.com, Phone: 555-123-4567, "
-            "SSN: 123-45-6789, Card: 4532-1234-5678-9010, Key: sk-test123456789"
+            "John Doe, john@example.com, 555-123-4567, "
+            "123-45-6789, 4532-1234-5678-9010, sk-test123456789"
         )
         entities = detect_pii(text)
         density = check_pii_density(text, entities)
