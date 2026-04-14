@@ -1,10 +1,11 @@
 # Agent Resources
 
+![CI](https://github.com/kvithayathil/agent-resources/actions/workflows/check.yml/badge.svg)
 ![Tests](https://img.shields.io/badge/tests-208%2F208-brightgreen)
 ![Lint](https://img.shields.io/badge/ruff-clean-brightgreen)
 ![VSDD](https://img.shields.io/badge/VSDD-converged-blue)
-![Python](https://img.shields.io/badge/python-3.14-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+![Python](https://img.shields.io/badge/python-3.12+-blue)
+![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
 
 Agent skills management — install, index, search, validate, update. Follows the [AgentSkills](https://agentskills.io) spec.
 

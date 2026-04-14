@@ -1,11 +1,11 @@
 import re
 import time
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 
-class ScanStage(str, Enum):
+class ScanStage(StrEnum):
     GARAK = "GARAK"
     PIP_AUDIT = "PIP_AUDIT"
     SEMGREP = "SEMGREP"

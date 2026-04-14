@@ -1,18 +1,18 @@
 import os
-from enum import Enum
+from enum import StrEnum
 
 from security_layer.models import AgentCapabilities, TaintFlag, ToolPermission
 from security_layer.state_machine import StateMachine
 
 
-class CapabilityState(str, Enum):
+class CapabilityState(StrEnum):
     FULL = "FULL"
     STANDARD = "STANDARD"
     READ_ONLY = "READ_ONLY"
     LOCKED = "LOCKED"
 
 
-class CapabilityEvent(str, Enum):
+class CapabilityEvent(StrEnum):
     RESTRICT_STANDARD = "RESTRICT_STANDARD"
     RESTRICT_READ_ONLY = "RESTRICT_READ_ONLY"
     LOCK = "LOCK"

@@ -1,20 +1,20 @@
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class ContentClassification(str, Enum):
+class ContentClassification(StrEnum):
     TRUSTED = "TRUSTED"
     UNTRUSTED_EXTERNAL = "UNTRUSTED_EXTERNAL"
     SUSPECTED_INJECTION = "SUSPECTED_INJECTION"
 
 
-class TaintFlag(str, Enum):
+class TaintFlag(StrEnum):
     CLEAN = "CLEAN"
     UNTRUSTED = "UNTRUSTED"
 
 
-class ToolPermission(str, Enum):
+class ToolPermission(StrEnum):
     READ = "READ"
     WRITE = "WRITE"
     BASH = "BASH"

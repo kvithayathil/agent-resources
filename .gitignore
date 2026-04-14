@@ -11,4 +11,7 @@ __pycache__/
 .mcp.json
 .claude/
 .pytest_cache/
-uv.lock
+uv-cache/
+.uv-cache/
+security_layer/.hypothesis/
+security_layer/mutants/

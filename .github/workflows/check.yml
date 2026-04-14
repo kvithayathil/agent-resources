@@ -1,0 +1,88 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+        working-directory: skills/scripts
+      - run: uv run ruff check .
+        working-directory: skills/scripts
+      - run: uv run ruff format --check .
+        working-directory: skills/scripts
+      - run: uv sync
+        working-directory: security_layer
+      - run: uv run ruff check . --exclude mutants
+        working-directory: security_layer
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+        working-directory: skills/scripts
+      - run: uv run basedpyright sync-index.py
+        working-directory: skills/scripts
+      - run: uv sync
+        working-directory: security_layer
+      - run: uv run basedpyright .
+        working-directory: security_layer
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+        working-directory: skills/scripts
+      - run: uv run pytest
+        working-directory: skills/scripts
+
+  test-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+        working-directory: security_layer
+      - run: uv run pytest ../tests/ -q
+        working-directory: security_layer
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+        working-directory: skills/scripts
+      - run: uv run pip-audit
+        working-directory: skills/scripts
+
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+        working-directory: skills/scripts
+      - run: uv run python sync-index.py validate
+        working-directory: skills/scripts
+
+  deadcode:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+        working-directory: skills/scripts
+      - run: uv run vulture sync-index.py
+        working-directory: skills/scripts
