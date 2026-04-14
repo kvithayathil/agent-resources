@@ -1,4 +1,0 @@
-# file: /Users/kurian/03 - Resources/agent-resources/security_layer/permissions.py
-# hypothesis_version: 6.151.14
-
-['..', 'FULL', 'LOCK', 'LOCKED', 'READ_ONLY', 'RESTRICT_READ_ONLY', 'RESTRICT_STANDARD', 'STANDARD']

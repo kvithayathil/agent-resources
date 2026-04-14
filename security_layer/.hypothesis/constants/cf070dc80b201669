@@ -1,4 +1,0 @@
-# file: /Users/kurian/03 - Resources/agent-resources/security_layer/__init__.py
-# hypothesis_version: 6.151.14
-
-['AgentCapabilities', 'BudgetLimits', 'BudgetState', 'ClassificationResult', 'DESTRUCTIVE_ACTIONS', 'HITLRequest', 'INJECTION_PATTERNS', 'PIIEntity', 'TaintFlag', 'ToolPermission', 'ValidationResult']

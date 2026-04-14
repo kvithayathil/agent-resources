@@ -1,4 +1,0 @@
-# file: /Users/kurian/03 - Resources/agent-resources/security_layer/trifecta.py
-# hypothesis_version: 6.151.14
-
-['body', 'classification', 'content', 'data', 'file-reader', 'metadata', 'payload', 'raw_content', 'text', 'type', 'web-fetcher', 'writer']
