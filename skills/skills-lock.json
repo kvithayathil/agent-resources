@@ -1,0 +1,26 @@
+{
+  "skills": {
+    "skill-vetter": {
+      "source": "https://github.com/useai-pro/openclaw-skills-security",
+      "ref": "main",
+      "source_type": "npx-skills",
+      "provider": "npx-skills",
+      "installed_at": "2026-04-14"
+    },
+    "security-best-practices": {
+      "source": "https://github.com/supercent-io/skills-template",
+      "ref": "main",
+      "source_type": "npx-skills",
+      "provider": "npx-skills",
+      "installed_at": "2026-04-14"
+    },
+    "tesseract-vault-security": {
+      "source": "https://github.com/dollspace-gay/Tesseract-Vault",
+      "ref": "main",
+      "source_type": "gh-api",
+      "provider": "manual",
+      "installed_at": "2026-04-14",
+      "remote_path": "SECURITY.md"
+    }
+  }
+}

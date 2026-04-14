@@ -20,6 +20,7 @@ just list                      # List indexed skills
 
 - `skills/` — Primary workspace. Skills live as `<name>/SKILL.md` or `<group>/<name>/SKILL.md`.
 - `skills/android/` — Android/KMP skills (8 skills: compose-ui, data-layer, di-koin, error-handling, module-structure, navigation, presentation-mvi, testing).
+- `skills/security/` — Security skills (3: tesseract-vault reference, skill-vetter, security-best-practices). Provenance in `skills-lock.json`.
 - `skills/.templates/` — Scaffold for new skills. Copy, edit, `just sync`.
 - `skills/scripts/` — CLI, sync, providers (recursive scanning supported).
 - `docs/` — Reference docs. Start with `skill-format.md` and `skill-manager.md`.
