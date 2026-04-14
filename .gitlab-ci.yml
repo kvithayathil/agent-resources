@@ -31,7 +31,7 @@ typecheck:security:
   variables:
     PYTHONPATH: .
   script:
-    - cd security_layer && uv sync && PYTHONPATH="$CI_PROJECT_DIR" uv run basedpyright .
+    - cd security_layer && uv sync && PYTHONPATH="$CI_PROJECT_DIR" uv run basedpyright __init__.py budget.py classifier.py hitl.py incident.py models.py output_validation.py permissions.py pii.py scanning.py state_machine.py trifecta.py
 
 test:skills:
   extends: .linux

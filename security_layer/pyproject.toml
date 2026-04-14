@@ -41,7 +41,8 @@ pythonVersion = "3.12"
 typeCheckingMode = "standard"
 reportUnusedImport = "error"
 reportUnusedVariable = "error"
-exclude = ["**/mutants"]
+exclude = ["**/mutants/**"]
+ignore = ["mutants"]
 
 [tool.pytest.ini_options]
 testpaths = ["../tests"]

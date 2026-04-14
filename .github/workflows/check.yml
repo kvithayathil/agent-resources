@@ -34,7 +34,7 @@ jobs:
         working-directory: skills/scripts
       - run: uv sync
         working-directory: security_layer
-      - run: uv run basedpyright .
+      - run: uv run basedpyright __init__.py budget.py classifier.py hitl.py incident.py models.py output_validation.py permissions.py pii.py scanning.py state_machine.py trifecta.py
         working-directory: security_layer
         env:
           PYTHONPATH: ${{ github.workspace }}
