@@ -2,48 +2,30 @@
 
 Skills management for AI coding agents following the [AgentSkills](https://agentskills.io) spec.
 
-## Commands
+## Quick Reference
 
-```
-just setup                     # Bootstrap deps
-just install <source>          # Install skill(s)
-just update                    # Update installed skills
-just sync                      # Rebuild SKILL_INDEX.yaml
-just validate [name]           # Validate skill(s)
-just check                     # Full quality gate (lint+typecheck+audit+validate)
-just search <query>            # Fuzzy search
-just lookup <name>             # Exact lookup
-just list                      # List indexed skills
-```
+- Commands: `just --list` or see `justfile`
+- Skill catalog: `skills/SKILL_INDEX.yaml` (auto-generated, run `just sync` to rebuild)
+- Provenance: `skills/skills-lock.json`
+- Skill format: `docs/skill-format.md`
+- Enhancement proposals: `docs/enhancements/` (see `_template.md` for spec)
+- Research: `research/README.md`
 
-## Structure
+## Agent-Specific Conventions
 
-- `skills/` — Primary workspace. See `skills/SKILL_INDEX.yaml` for full catalog. Skills live as `<name>/SKILL.md` or `<group>/<name>/SKILL.md`.
-- `skills/.templates/` — Scaffold for new skills. Copy, edit, `just sync`.
-- `skills/scripts/` — CLI, sync, providers (recursive scanning supported).
-- `skills/skills-lock.json` — Provenance for remote-sourced skills.
-- `docs/` — Reference docs. Start with `skill-format.md` and `skill-manager.md`.
-- `docs/enhancements/` — Proposals. Copy `_template.md` to start new.
-- `research/` — Notes & findings. See `research/README.md`.
-- `security_layer/` — Python security module (own venv + pyproject.toml).
-- `tests/` — Test suite.
-
-## Conventions
-
-- **Justfile** is the single source of truth. Prefer `just` over raw commands.
-- **Quality gate**: ruff → basedpyright → vulture → pylint → jscpd → pip-audit → skill validation.
-- **Self-learning skills** (vdd, vsdd): agent may modify `references/` files based on real-world evidence.
-- **Enhancements**: frontmatter status tracking. See `docs/enhancements/_template.md`.
+- **Justfile** is the command source of truth. Use `just` over raw commands.
+- **Quality gate**: `just check` runs ruff → basedpyright → vulture → pylint → jscpd → pip-audit → skill validation.
+- **Skills** may live as `skills/<name>/SKILL.md` or `skills/<group>/<name>/SKILL.md` (recursive scanning).
+- **Self-learning skills** (vdd, vsdd, security): agent may modify `references/` files based on real-world evidence.
+- **Self-updating skills** (security): run freshness checks when `last-reviewed` is >7 days old. See SKILL.md for update commands.
 
 ## Auto-Update
 
-This file and related indexes should be kept in sync with reality. Update them when:
+Keep indexes in sync when changes are made. Do not wait to be asked.
 
-- **New skill added/removed** → update Structure list above, run `just sync`
-- **New justfile recipe added/changed** → update Commands block above
-- **New top-level directory created** → update Structure list above
-- **New doc added to `docs/` or `docs/enhancements/`** → update `docs/enhancements/README.md` index
-- **New research file added** → update `research/README.md` index
-- **Enhancement status changes** → update frontmatter in the doc AND the index table in `docs/enhancements/README.md`
-
-Do not wait to be asked. If you created the change, update the relevant index.
+- **New skill added/removed** → run `just sync`
+- **New justfile recipe** → no action needed (agent can run `just --list`)
+- **New top-level directory** → update Structure list in `README.md`
+- **New enhancement** → update `docs/enhancements/README.md` index
+- **New research file** → update `research/README.md` index
+- **Enhancement status change** → update frontmatter AND index table in `docs/enhancements/README.md`
