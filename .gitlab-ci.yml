@@ -28,8 +28,10 @@ typecheck:skills:
 
 typecheck:security:
   extends: .linux
+  variables:
+    PYTHONPATH: .
   script:
-    - cd security_layer && uv sync && uv run basedpyright .
+    - cd security_layer && uv sync && PYTHONPATH="$CI_PROJECT_DIR" uv run basedpyright .
 
 test:skills:
   extends: .linux

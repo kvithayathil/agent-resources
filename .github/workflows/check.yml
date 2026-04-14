@@ -36,6 +36,8 @@ jobs:
         working-directory: security_layer
       - run: uv run basedpyright .
         working-directory: security_layer
+        env:
+          PYTHONPATH: ${{ github.workspace }}
 
   test:
     runs-on: ubuntu-latest
