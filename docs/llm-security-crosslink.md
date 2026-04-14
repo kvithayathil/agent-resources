@@ -424,6 +424,8 @@ All four tasks from the CI/CD automation plan implemented:
 | License | GPL-3.0 → AGPL-3.0-only (pyproject.toml + LICENSE file) |
 | Ruff clean | `uv run ruff check . --exclude mutants` = All checks passed |
 | Tests | 208/208 GREEN (verified post-migration) |
+| Type fix | `is_path_allowed` return type corrected `str` → `bool` (permissions.py:40) |
+| CI green | PR #2 merged after all 7 CI jobs passing |
 
 **CI pipeline coverage:**
 
