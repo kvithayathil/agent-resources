@@ -1,4 +1,0 @@
-# file: /Users/kurian/03 - Resources/agent-resources/security_layer/pii.py
-# hypothesis_version: 6.151.14
-
-[0.0, 0.7, 0.9, 0.92, 0.93, 0.95, 'API_KEY', 'BEARER_TOKEN', 'CREDIT_CARD', 'CustomSSNRecognizer', 'EMAIL_ADDRESS', 'PERSON', 'PHONE_NUMBER', 'US_SSN', 'address', 'authorization', 'bearer_token', 'card', 'credit_card', 'email', 'email_address', 'en', 'entities', 'github_pat', 'ignore', 'key', 'name', 'number', 'openai_api_key', 'phone', 'phone_number', 'ssn', 'token', 'us_ssn', 'utf-8']
