@@ -16,9 +16,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import unicodedata
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
@@ -35,6 +37,26 @@ ALL_ALLOWED_FIELDS = SPEC_FIELDS | EXTENSION_FIELDS
 MAX_NAME_LENGTH = 64
 MAX_DESCRIPTION_LENGTH = 1024
 MAX_COMPATIBILITY_LENGTH = 500
+
+CONFIG_PATH = Path(__file__).resolve().parent / "config.yaml"
+DEFAULT_STALE_DAYS = 7
+
+
+def load_config() -> dict:
+    if CONFIG_PATH.exists():
+        try:
+            data = yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
+            return data if isinstance(data, dict) else {}
+        except (yaml.YAMLError, OSError):
+            pass
+    return {}
+
+
+def get_stale_days() -> int:
+    env = os.environ.get("SKILLS_STALE_DAYS")
+    if env and env.isdigit():
+        return int(env)
+    return int(load_config().get("stale_days", DEFAULT_STALE_DAYS))
 
 
 # ---------------------------------------------------------------------------
@@ -426,6 +448,28 @@ def filter_by_tag(tag: str, skills: list[dict]) -> list[dict]:
     return [e for e in skills if tag_lower in [t.lower() for t in e.get("tags", [])]]
 
 
+def check_staleness(entries: list[dict], stale_days: int) -> list[str]:
+    warnings: list[str] = []
+    now = datetime.now(UTC)
+    for entry in entries:
+        src = entry.get("source", {})
+        ts_str = src.get("updated_at") or src.get("installed_at")
+        if not ts_str:
+            continue
+        try:
+            ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=UTC)
+        except (ValueError, TypeError):
+            continue
+        age = (now - ts).days
+        if age > stale_days:
+            warnings.append(
+                f"  {entry['name']}: {age}d old (threshold: {stale_days}d) — run: just update {entry['name']}"
+            )
+    return warnings
+
+
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
@@ -436,6 +480,12 @@ def cmd_sync(args: argparse.Namespace) -> None:
     write_index(entries)
     if not getattr(args, "quiet", False):
         print(f"Indexed {len(entries)} skill(s) -> {INDEX_PATH.relative_to(SKILLS_DIR.parent)}")
+    stale_days = get_stale_days()
+    warnings = check_staleness(entries, stale_days)
+    if warnings and not getattr(args, "quiet", False):
+        print(f"\nStale skills (>{stale_days}d since last update):")
+        for w in warnings:
+            print(w)
 
 
 def cmd_validate(args: argparse.Namespace) -> None:
