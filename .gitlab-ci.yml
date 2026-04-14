@@ -1,0 +1,59 @@
+variables:
+  UV_CACHE_DIR: .uv-cache
+
+cache:
+  paths:
+    - .uv-cache
+
+.linux:
+  image: python:3.12-slim
+  before_script:
+    - pip install uv
+    - uv --version
+
+lint:skills:
+  extends: .linux
+  script:
+    - cd skills/scripts && uv sync && uv run ruff check . && uv run ruff format --check .
+
+lint:security:
+  extends: .linux
+  script:
+    - cd security_layer && uv sync && uv run ruff check . --exclude mutants
+
+typecheck:skills:
+  extends: .linux
+  script:
+    - cd skills/scripts && uv sync && uv run basedpyright sync-index.py
+
+typecheck:security:
+  extends: .linux
+  variables:
+    PYTHONPATH: .
+  script:
+    - cd security_layer && uv sync && PYTHONPATH="$CI_PROJECT_DIR" uv run basedpyright __init__.py budget.py classifier.py hitl.py incident.py models.py output_validation.py permissions.py pii.py scanning.py state_machine.py trifecta.py
+
+test:skills:
+  extends: .linux
+  script:
+    - cd skills/scripts && uv sync && (uv run pytest -x -q || [ $? -eq 5 ])
+
+test:security:
+  extends: .linux
+  script:
+    - cd security_layer && uv sync && uv run pytest ../tests/ -q
+
+audit:
+  extends: .linux
+  script:
+    - cd skills/scripts && uv sync && uv run pip-audit
+
+validate:
+  extends: .linux
+  script:
+    - cd skills/scripts && uv sync && uv run python sync-index.py validate
+
+deadcode:
+  extends: .linux
+  script:
+    - cd skills/scripts && uv sync && uv run vulture sync-index.py

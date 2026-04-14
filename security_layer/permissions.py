@@ -1,18 +1,18 @@
 import os
-from enum import Enum
+from enum import StrEnum
 
 from security_layer.models import AgentCapabilities, TaintFlag, ToolPermission
 from security_layer.state_machine import StateMachine
 
 
-class CapabilityState(str, Enum):
+class CapabilityState(StrEnum):
     FULL = "FULL"
     STANDARD = "STANDARD"
     READ_ONLY = "READ_ONLY"
     LOCKED = "LOCKED"
 
 
-class CapabilityEvent(str, Enum):
+class CapabilityEvent(StrEnum):
     RESTRICT_STANDARD = "RESTRICT_STANDARD"
     RESTRICT_READ_ONLY = "RESTRICT_READ_ONLY"
     LOCK = "LOCK"
@@ -37,7 +37,7 @@ def resolve_path(path: str, workspace_root: str) -> str:
     return os.path.normpath(path)
 
 
-def is_path_allowed(path: str, workspace_root: str) -> str:
+def is_path_allowed(path: str, workspace_root: str) -> bool:
     resolved = os.path.normpath(path)
     workspace = os.path.normpath(workspace_root)
     if check_path_traversal(path):

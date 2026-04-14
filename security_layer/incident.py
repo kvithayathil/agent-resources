@@ -1,18 +1,18 @@
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from security_layer.state_machine import InvalidTransition
 
 
-class IncidentState(str, Enum):
+class IncidentState(StrEnum):
     NORMAL = "NORMAL"
     ALERT = "ALERT"
     DEGRADED = "DEGRADED"
     LOCKED = "LOCKED"
 
 
-class IncidentEvent(str, Enum):
+class IncidentEvent(StrEnum):
     MITIGATION_FAILURE = "MITIGATION_FAILURE"
     ACKNOWLEDGE = "ACKNOWLEDGE"
     ESCALATE = "ESCALATE"

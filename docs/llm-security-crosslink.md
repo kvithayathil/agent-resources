@@ -400,3 +400,42 @@ EFFECTFUL SHELL (I/O, mutation, external deps):
 | **Tests** | CONVERGED — 208/208 green, hypothesis fuzz testing passed |
 | **Implementation** | CONVERGED — all findings fixed |
 | **Verification** | CONVERGED — hypothesis fuzz + purity audit accepted as Python-appropriate. Formal proofs N/A for Python. Mutation testing deferred (mutmut 3.5.0 tooling bug). |
+
+### Next: CI/CD Automation
+
+See [`docs/ci-cd-automation-plan.md`](ci-cd-automation-plan.md) — 4 tasks mapping all quality gates to GitHub Actions + GitLab CI pipelines.
+
+### CI/CD Implementation — COMPLETE (2026-04-14)
+
+All four tasks from the CI/CD automation plan implemented:
+
+| Task | Deliverable | Status |
+|:-----|:-----------|:-------|
+| T1 | `.github/workflows/check.yml` — 7 parallel jobs (lint, typecheck, test, test-security, audit, validate, deadcode) | DONE |
+| T2 | `.gitlab-ci.yml` — same check matrix, GitLab-native | DONE |
+| T3 | README badges updated — live CI status + AGPL-3.0 | DONE |
+| T4 | `.gitignore` updated — uv-cache, hypothesis artifacts | DONE |
+
+**Additional changes in this session:**
+
+| Change | Detail |
+|:-------|:-------|
+| StrEnum migration | 8 enums migrated from `(str, Enum)` to `StrEnum` (Python 3.12+) — ruff UP042 clean |
+| License | GPL-3.0 → AGPL-3.0-only (pyproject.toml + LICENSE file) |
+| Ruff clean | `uv run ruff check . --exclude mutants` = All checks passed |
+| Tests | 208/208 GREEN (verified post-migration) |
+
+**CI pipeline coverage:**
+
+```
+GitHub Actions / GitLab CI
+├── lint:skills          — ruff check + format (skills/scripts)
+├── lint:security        — ruff check (security_layer, mutants excluded)
+├── typecheck:skills     — basedpyright (skills/scripts)
+├── typecheck:security   — basedpyright (security_layer)
+├── test:skills          — pytest (skills/scripts)
+├── test:security        — pytest 208 tests (security_layer)
+├── audit                — pip-audit (skills/scripts)
+├── validate             — sync-index.py validate (skills/scripts)
+└── deadcode             — vulture (skills/scripts)
+```
