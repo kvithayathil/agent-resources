@@ -1,0 +1,4 @@
+# file: /Users/kurian/03 - Resources/agent-resources/security_layer/scanning.py
+# hypothesis_version: 6.151.14
+
+[0.01, '..', '==', 'CUSTOM_RULES', 'GARAK', 'PIP_AUDIT', 'SEMGREP', 'api_key', 'apikey', 'bypass', 'delete', 'drop', 'execute', 'fail_fast', 'ignore', 'override', 'password', 'password=', 'requirements', 'reveal', 'secret', 'secret_key', 'sk-', 'sudo', 'target', 'token=']

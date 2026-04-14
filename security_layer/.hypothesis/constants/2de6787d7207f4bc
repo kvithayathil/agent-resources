@@ -1,0 +1,4 @@
+# file: /Users/kurian/03 - Resources/agent-resources/security_layer/classifier.py
+# hypothesis_version: 6.151.14
+
+[0.0, 0.05, 0.7, 0.8, 1.0, 'NFC', 'a', 'api', 'c', 'e', 'external', 'h', 'http', 'i', 'ignore', 'j', 'o', 'p', 's', 'scraper', 'user', 'utf-8', 'web', 'x', 'y', 'ɩ', 'а', 'е', 'о', 'р', 'с', 'у', 'х', 'є', 'і', 'ї', 'ј', 'љ', 'һ']

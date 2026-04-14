@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+# Skill manager CLI — thin wrapper that delegates to a provider.
+# Default provider: npx-skills (wraps `npx skills`)
+# Override: set SKILLS_PROVIDER env var to another provider script.
+set -euo pipefail
+
+SCRIPTS_DIR="$(cd "$(dirname "$0")" && pwd)"
+SKILLS_DIR="$(dirname "$SCRIPTS_DIR")"
+PROVIDER_DIR="$SCRIPTS_DIR/providers"
+
+# Provider selection: env var > default
+PROVIDER_SCRIPT="${SKILLS_PROVIDER:-$PROVIDER_DIR/npx-skills.sh}"
+
+if [[ ! -f "$PROVIDER_SCRIPT" ]]; then
+    echo "ERROR: Provider not found: $PROVIDER_SCRIPT" >&2
+    echo "Set SKILLS_PROVIDER to a valid provider script path." >&2
+    exit 1
+fi
+
+# Source the provider (must implement _provider_install, _provider_update, _provider_check)
+# shellcheck source=/dev/null
+source "$PROVIDER_SCRIPT"
+
+# Source shared helpers
+# shellcheck source=/dev/null
+source "$PROVIDER_DIR/common.sh"
+
+    _usage() {
+        cat <<EOF
+Usage: skill-manager <command> [options]
+
+Commands:
+  install <source> [options]   Install a skill from source
+  update [skills...]           Update installed skills
+  check                        Check for available updates (provider)
+  sync                         Rebuild SKILL_INDEX.yaml from SKILL.md files
+  validate [skills...]         Validate skills against spec + run quality checks
+  search <query>               Fuzzy search skills by task description
+  lookup <name>                Exact skill lookup by name
+  tag <tag>                    Filter skills by tag
+  tokens                       Show token estimates for all skills
+  list                         List all installed skills
+  help                         Show this help
+
+Options:
+  --global, -g                 Operate on global skills
+  --agent <agents...>          Target specific agents
+  --skill <skills...>          Install specific skills by name
+  --format <text|json>         Output format (default: text)
+  --top <n>                    Max search results (default: 10)
+  --yes, -y                    Skip confirmation prompts
+
+Provider: $(basename "$PROVIDER_SCRIPT")
+EOF
+    }
+
+SYNC_SCRIPT="$SCRIPTS_DIR/sync-index.py"
+
+case "${1:-help}" in
+    install|i|add|a)
+        shift
+        if [[ $# -lt 1 ]]; then
+            echo "Usage: skill-manager install <source> [options]" >&2
+            exit 1
+        fi
+        _provider_install "$@"
+        echo "--- Syncing index ---"
+        python3 "$SYNC_SCRIPT" sync
+        ;;
+    update|upgrade|u)
+        shift
+        _provider_update "$@"
+        echo "--- Syncing index ---"
+        python3 "$SYNC_SCRIPT" sync
+        ;;
+    check)
+        shift
+        _provider_check "$@"
+        ;;
+    sync)
+        shift
+        python3 "$SYNC_SCRIPT" sync
+        ;;
+    search|find|s)
+        shift
+        python3 "$SYNC_SCRIPT" search "$@"
+        ;;
+    lookup|l)
+        shift
+        python3 "$SYNC_SCRIPT" lookup "$@"
+        ;;
+    tag|t)
+        shift
+        python3 "$SYNC_SCRIPT" tag "$@"
+        ;;
+    tokens|tok)
+        shift
+        python3 "$SYNC_SCRIPT" tokens "$@"
+        ;;
+    list|ls)
+        shift
+        python3 "$SYNC_SCRIPT" sync --quiet 2>/dev/null || true
+        python3 "$SYNC_SCRIPT" search "" --top 100 --format json 2>/dev/null | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+for s in data:
+    src = ''
+    if 'source' in s and s['source'].get('repo'):
+        src = f\" ({s['source']['repo']})\"
+    print(f\"  {s['name']}: {s['description'][:80]}{src}\")
+" 2>/dev/null || python3 "$SYNC_SCRIPT" lookup "" 2>/dev/null || echo "No skills found."
+        ;;
+    validate|check-spec|v)
+        shift
+        python3 "$SYNC_SCRIPT" validate "$@"
+        echo "--- Running quality checks ---"
+        cd "$SCRIPTS_DIR"
+        uv run ruff check sync-index.py
+        uv run basedpyright sync-index.py
+        uv run vulture sync-index.py
+        echo "All checks passed."
+        ;;
+    help|--help|-h)
+        _usage
+        ;;
+    *)
+        echo "Unknown command: $1" >&2
+        _usage
+        exit 1
+        ;;
+esac

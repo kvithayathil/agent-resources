@@ -1,0 +1,4 @@
+# file: /Users/kurian/03 - Resources/agent-resources/security_layer/hitl.py
+# hypothesis_version: 6.151.14
+
+['Action approved', 'Action denied', 'approved', 'created_at', 'denied', 'not_found', 'pending', 'request', 'status']

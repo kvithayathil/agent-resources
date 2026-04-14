@@ -1,0 +1,75 @@
+[project]
+name = "agent-resources"
+version = "0.1.0"
+description = "Agent skills management — index, search, validate, install, update"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+dependencies = [
+    "pyyaml>=6.0",
+    "tiktoken>=0.7.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.8.0",
+    "basedpyright>=1.28.0",
+    "pip-audit>=0.3.0",
+    "vulture>=2.0",
+    "pylint>=3.0",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+src = ["."]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "C4",     # flake8-comprehensions
+    "TCH",    # flake8-type-checking
+    "RUF",    # ruff-specific rules
+    "PERF",   # perflint
+    "PGH",    # pygrep-hooks
+    "S",      # flake8-bandit (security)
+]
+ignore = ["S603"]  # subprocess without shell=True — we don't use subprocess here
+
+[tool.ruff.lint.isort]
+known-first-party = ["sync_index"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.basedpyright]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+reportUnusedImport = "error"
+reportUnusedVariable = "error"
+reportMissingTypeStubs = "warning"
+
+[tool.vulture]
+paths = ["."]
+min_confidence = 80
+
+[tool.pylint.messages_control]
+disable = [
+    "all",
+]
+enable = [
+    "duplicate-code",
+    "R0801",
+]
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,14 @@
+.DS_Store
+*.swp
+*.swo
+*~
+.agent-workspace/
+__pycache__/
+*.pyc
+.venv/
+.ruff_cache/
+.chainlink/
+.mcp.json
+.claude/
+.pytest_cache/
+uv.lock
