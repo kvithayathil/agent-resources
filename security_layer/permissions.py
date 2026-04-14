@@ -37,7 +37,7 @@ def resolve_path(path: str, workspace_root: str) -> str:
     return os.path.normpath(path)
 
 
-def is_path_allowed(path: str, workspace_root: str) -> str:
+def is_path_allowed(path: str, workspace_root: str) -> bool:
     resolved = os.path.normpath(path)
     workspace = os.path.normpath(workspace_root)
     if check_path_traversal(path):
