@@ -373,6 +373,17 @@ def load_index() -> list[dict]:
     return data.get("skills", []) if isinstance(data, dict) else []
 
 
+def _build_tag_index(entries: list[dict]) -> dict[str, list[str]]:
+    tag_map: dict[str, list[str]] = {}
+    for entry in entries:
+        for tag in entry.get("tags", []):
+            tag_l = tag.lower()
+            tag_map.setdefault(tag_l, []).append(entry["name"])
+    for names in tag_map.values():
+        names.sort()
+    return dict(sorted(tag_map.items()))
+
+
 def write_index(entries: list[dict]) -> None:
     header = (
         "# Agent Skills Index (auto-generated)\n"
@@ -381,7 +392,14 @@ def write_index(entries: list[dict]) -> None:
         "#\n"
         "# Source of truth: SKILL.md frontmatter + skills-lock.json\n"
     )
-    doc = yaml.dump({"skills": entries}, default_flow_style=False, sort_keys=False, width=200, allow_unicode=True)
+    tag_index = _build_tag_index(entries)
+    doc = yaml.dump(
+        {"skills": entries, "tag_index": tag_index},
+        default_flow_style=False,
+        sort_keys=False,
+        width=200,
+        allow_unicode=True,
+    )
     INDEX_PATH.write_text(header + "\n" + doc + "\n", encoding="utf-8")
 
 

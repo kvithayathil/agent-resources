@@ -72,7 +72,7 @@ skills:
 - name: design-an-interface
   description: Generate multiple radically different interface designs for a module using parallel sub-agents. Use when user wants to design an API, explore interface options, compare module shapes, or
     mentions "design it twice".
-  path: architecture/design-an-interface
+  path: design-an-interface
   triggers:
   - design an interface
   - design an api
@@ -96,10 +96,63 @@ skills:
     source_type: gh-api
     provider: manual
     installed_at: '2026-04-16'
+- name: github-triage
+  description: Triage GitHub issues through a label-based state machine with interactive grilling sessions. Use when user wants to triage issues, review incoming bugs or feature requests, prepare issues
+    for an AFK agent, or manage issue workflow.
+  path: github-triage
+  triggers:
+  - triage issues
+  - github triage
+  - review bugs
+  - feature requests
+  - issue workflow
+  - ready for agent
+  tags:
+  - github
+  - project-management
+  - workflow
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 1504
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
+- name: grill-me
+  description: Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree. Use when user wants to stress-test a plan, get grilled
+    on their design, or mentions "grill me".
+  path: grill-me
+  triggers:
+  - grill me
+  - stress test a plan
+  - interview about design
+  - decision tree
+  - shared understanding
+  tags:
+  - planning
+  - design
+  - interview
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 72
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
 - name: improve-codebase-architecture
   description: Explore a codebase to find opportunities for architectural improvement, focusing on making the codebase more testable by deepening shallow modules. Use when user wants to improve architecture,
     find refactoring opportunities, consolidate tightly-coupled modules, or make a codebase more AI-navigable.
-  path: architecture/improve-codebase-architecture
+  path: improve-codebase-architecture
   triggers:
   - improve architecture
   - refactoring opportunities
@@ -124,117 +177,10 @@ skills:
     source_type: gh-api
     provider: manual
     installed_at: '2026-04-16'
-- name: ubiquitous-language
-  description: Extract a DDD-style ubiquitous language glossary from the current conversation, flagging ambiguities and proposing canonical terms. Saves to UBIQUITOUS_LANGUAGE.md. Use when user wants to
-    define domain terms, build a glossary, harden terminology, create a ubiquitous language, or mentions "domain model" or "DDD".
-  path: domain/ubiquitous-language
-  triggers:
-  - ubiquitous language
-  - domain terms
-  - glossary
-  - terminology
-  - domain model
-  - ddd
-  - domain-driven design
-  tags:
-  - domain
-  - ddd
-  - documentation
-  license: MIT
-  metadata:
-    author: mattpocock
-    version: '1.0'
-  version: '1.0'
-  token_estimate: 572
-  source:
-    source: https://github.com/mattpocock/skills
-    ref: main
-    source_type: gh-api
-    provider: manual
-    installed_at: '2026-04-16'
-- name: github-triage
-  description: Triage GitHub issues through a label-based state machine with interactive grilling sessions. Use when user wants to triage issues, review incoming bugs or feature requests, prepare issues
-    for an AFK agent, or manage issue workflow.
-  path: github/github-triage
-  triggers:
-  - triage issues
-  - github triage
-  - review bugs
-  - feature requests
-  - issue workflow
-  - ready for agent
-  tags:
-  - github
-  - project-management
-  - workflow
-  license: MIT
-  metadata:
-    author: mattpocock
-    version: '1.0'
-  version: '1.0'
-  token_estimate: 1504
-  source:
-    source: https://github.com/mattpocock/skills
-    ref: main
-    source_type: gh-api
-    provider: manual
-    installed_at: '2026-04-16'
-- name: qa
-  description: Interactive QA session where user reports bugs or issues conversationally, and the agent files GitHub issues. Explores the codebase in the background for context and domain language. Use
-    when user wants to report bugs, do QA, file issues conversationally, or mentions "QA session".
-  path: github/qa
-  triggers:
-  - qa session
-  - report bugs
-  - file issues
-  - qa
-  - bug report
-  tags:
-  - testing
-  - qa
-  - github
-  license: MIT
-  metadata:
-    author: mattpocock
-    version: '1.0'
-  version: '1.0'
-  token_estimate: 720
-  source:
-    source: https://github.com/mattpocock/skills
-    ref: main
-    source_type: gh-api
-    provider: manual
-    installed_at: '2026-04-16'
-- name: grill-me
-  description: Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree. Use when user wants to stress-test a plan, get grilled
-    on their design, or mentions "grill me".
-  path: planning/grill-me
-  triggers:
-  - grill me
-  - stress test a plan
-  - interview about design
-  - decision tree
-  - shared understanding
-  tags:
-  - planning
-  - design
-  - interview
-  license: MIT
-  metadata:
-    author: mattpocock
-    version: '1.0'
-  version: '1.0'
-  token_estimate: 72
-  source:
-    source: https://github.com/mattpocock/skills
-    ref: main
-    source_type: gh-api
-    provider: manual
-    installed_at: '2026-04-16'
 - name: prd-to-issues
   description: Break a PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when user wants to convert a PRD to issues, create implementation tickets, or break down a
     PRD into work items.
-  path: planning/prd-to-issues
+  path: prd-to-issues
   triggers:
   - prd to issues
   - convert prd
@@ -258,10 +204,36 @@ skills:
     source_type: gh-api
     provider: manual
     installed_at: '2026-04-16'
+- name: qa
+  description: Interactive QA session where user reports bugs or issues conversationally, and the agent files GitHub issues. Explores the codebase in the background for context and domain language. Use
+    when user wants to report bugs, do QA, file issues conversationally, or mentions "QA session".
+  path: qa
+  triggers:
+  - qa session
+  - report bugs
+  - file issues
+  - qa
+  - bug report
+  tags:
+  - testing
+  - qa
+  - github
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 720
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
 - name: request-refactor-plan
   description: Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue. Use when user wants to plan a refactor, create a refactoring RFC, or break a refactor
     into safe incremental steps.
-  path: planning/request-refactor-plan
+  path: request-refactor-plan
   triggers:
   - refactor plan
   - refactoring rfc
@@ -278,31 +250,6 @@ skills:
     version: '1.0'
   version: '1.0'
   token_estimate: 482
-  source:
-    source: https://github.com/mattpocock/skills
-    ref: main
-    source_type: gh-api
-    provider: manual
-    installed_at: '2026-04-16'
-- name: write-a-prd
-  description: Create a PRD through user interview, codebase exploration, and module design, then submit as a GitHub issue. Use when user wants to write a PRD, create a product requirements document, or
-    plan a new feature.
-  path: planning/write-a-prd
-  triggers:
-  - write a prd
-  - product requirements document
-  - plan a new feature
-  - create a prd
-  tags:
-  - planning
-  - product
-  - design
-  license: MIT
-  metadata:
-    author: mattpocock
-    version: '1.0'
-  version: '1.0'
-  token_estimate: 512
   source:
     source: https://github.com/mattpocock/skills
     ref: main
@@ -337,7 +284,7 @@ skills:
     auth with refresh token rotation, and secret management. Use for new projects, security audits, public APIs, and compliance.
 
     '
-  path: security/security-best-practices
+  path: security-best-practices
   tags:
   - security
   - owasp
@@ -360,12 +307,39 @@ skills:
     source_type: npx-skills
     provider: npx-skills
     installed_at: '2026-04-14'
+- name: setup-pre-commit
+  description: Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. Use when user wants to add pre-commit hooks, set up Husky, configure lint-staged,
+    or add commit-time formatting/typechecking/testing.
+  path: setup-pre-commit
+  triggers:
+  - pre-commit hooks
+  - husky
+  - lint-staged
+  - prettier
+  - commit hooks
+  - setup pre-commit
+  tags:
+  - tooling
+  - git
+  - setup
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 586
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
 - name: skill-vetter
   description: 'Pre-install security vetting for agent skills using a structured red-flag checklist. Checks metadata, permission scope, typosquatting, obfuscated content, and command injection. Produces
     a vetting report with verdict (Safe/Warning/Danger/Block). Use before installing any skill from external sources.
 
     '
-  path: security/skill-vetter
+  path: skill-vetter
   tags:
   - security
   - vetting
@@ -387,27 +361,28 @@ skills:
     source_type: npx-skills
     provider: npx-skills
     installed_at: '2026-04-14'
-- name: setup-pre-commit
-  description: Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. Use when user wants to add pre-commit hooks, set up Husky, configure lint-staged,
-    or add commit-time formatting/typechecking/testing.
-  path: tooling/setup-pre-commit
+- name: ubiquitous-language
+  description: Extract a DDD-style ubiquitous language glossary from the current conversation, flagging ambiguities and proposing canonical terms. Saves to UBIQUITOUS_LANGUAGE.md. Use when user wants to
+    define domain terms, build a glossary, harden terminology, create a ubiquitous language, or mentions "domain model" or "DDD".
+  path: ubiquitous-language
   triggers:
-  - pre-commit hooks
-  - husky
-  - lint-staged
-  - prettier
-  - commit hooks
-  - setup pre-commit
+  - ubiquitous language
+  - domain terms
+  - glossary
+  - terminology
+  - domain model
+  - ddd
+  - domain-driven design
   tags:
-  - tooling
-  - git
-  - setup
+  - domain
+  - ddd
+  - documentation
   license: MIT
   metadata:
     author: mattpocock
     version: '1.0'
   version: '1.0'
-  token_estimate: 586
+  token_estimate: 572
   source:
     source: https://github.com/mattpocock/skills
     ref: main
@@ -461,4 +436,114 @@ skills:
     last-reviewed: '2026-04-14'
   version: 1.0.0
   token_estimate: 2353
+- name: write-a-prd
+  description: Create a PRD through user interview, codebase exploration, and module design, then submit as a GitHub issue. Use when user wants to write a PRD, create a product requirements document, or
+    plan a new feature.
+  path: write-a-prd
+  triggers:
+  - write a prd
+  - product requirements document
+  - plan a new feature
+  - create a prd
+  tags:
+  - planning
+  - product
+  - design
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 512
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
+tag_index:
+  api:
+  - design-an-interface
+  architecture:
+  - design-an-interface
+  - improve-codebase-architecture
+  - vsdd
+  authentication:
+  - security-best-practices
+  correctness:
+  - vdd
+  cryptography:
+  - security
+  ddd:
+  - ubiquitous-language
+  design:
+  - design-an-interface
+  - grill-me
+  - improve-codebase-architecture
+  - write-a-prd
+  design-review:
+  - vsdd
+  development:
+  - vdd
+  documentation:
+  - ubiquitous-language
+  domain:
+  - ubiquitous-language
+  git:
+  - setup-pre-commit
+  github:
+  - github-triage
+  - prd-to-issues
+  - qa
+  - request-refactor-plan
+  interview:
+  - grill-me
+  methodology:
+  - vdd
+  - vsdd
+  owasp:
+  - security-best-practices
+  planning:
+  - grill-me
+  - prd-to-issues
+  - request-refactor-plan
+  - write-a-prd
+  product:
+  - write-a-prd
+  project-management:
+  - github-triage
+  - prd-to-issues
+  qa:
+  - qa
+  refactoring:
+  - improve-codebase-architecture
+  - request-refactor-plan
+  secure-design:
+  - security
+  security:
+  - security
+  - security-best-practices
+  - skill-vetter
+  setup:
+  - setup-pre-commit
+  skill-review:
+  - skill-vetter
+  system-design:
+  - vsdd
+  testing:
+  - qa
+  - vdd
+  threat-model:
+  - security
+  tooling:
+  - setup-pre-commit
+  verification:
+  - vdd
+  - vsdd
+  vetting:
+  - skill-vetter
+  web:
+  - security-best-practices
+  workflow:
+  - github-triage
 
