@@ -1,0 +1,15 @@
+{
+  "uuid": "ee0020f5-a566-47f5-826a-1ff46c34e6d8",
+  "display_id": 1,
+  "title": "Create security-scan skill wrapping codescanner",
+  "description": "Closing — provenance-tracking skill already exists at `.agents/skills/provenance-tracking/SKILL.md`. No further action needed.",
+  "status": "closed",
+  "priority": "high",
+  "created_by": "Jm2A",
+  "created_at": "2026-04-18T02:07:12.515773Z",
+  "updated_at": "2026-07-13T03:13:24.032706Z",
+  "closed_at": "2026-07-13T03:13:24.032706Z",
+  "labels": [
+    "feature"
+  ]
+}
