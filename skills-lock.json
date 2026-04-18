@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "provenance-tracking": {
+      "source": "/Users/kurian/03 - Resources/agent-resources/skills/provenance-tracking",
+      "sourceType": "local",
+      "computedHash": "cdd70bbe9eedcb67324253922f3fac3039ff7719b814207c53c9a4bc5df161c2"
+    }
+  }
+}
