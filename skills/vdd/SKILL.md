@@ -19,10 +19,15 @@ metadata:
   self-learning: "true"
   self-updating: "true"
   update-policy: "evolve-on-evidence"
-  last-reviewed: "2026-04-14"
+  last-reviewed: "2026-04-18"
+source:
+  gist: https://gist.github.com/dollspace-gay/45c95ebfb5a3a3bae84d8bebd662cc25
+  gist_id: 45c95ebfb5a3a3bae84d8bebd662cc25
+  fetched_at: "2026-04-18T02:25:22Z"
 ---
 
 # Verification-Driven Development (VDD)
+---
 
 ## Overview
 
