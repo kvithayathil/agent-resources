@@ -18,6 +18,9 @@ metadata:
   weekly-installs: "15.2K"
   fetched-at: "2026-04-14"
   last-reviewed: "2026-04-14"
+source:
+  repo: https://github.com/useai-pro/openclaw-skills-security
+  ref: main
 ---
 
 # Skill Vetter

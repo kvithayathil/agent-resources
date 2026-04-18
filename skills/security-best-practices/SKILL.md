@@ -19,6 +19,9 @@ metadata:
   weekly-installs: "14.1K"
   fetched-at: "2026-04-14"
   last-reviewed: "2026-04-14"
+source:
+  repo: https://github.com/supercent-io/skills-template
+  ref: main
 ---
 
 # Security Best Practices
