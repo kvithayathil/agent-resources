@@ -435,6 +435,57 @@ GitHub Actions / GitLab CI
 ├── lint:security        — ruff check (security_layer, mutants excluded)
 ├── typecheck:skills     — basedpyright (skills/scripts)
 ├── typecheck:security   — basedpyright (security_layer)
+├── test:skills          — pytest 33 tests (skills/scripts/tests/)
+├── test:security        — pytest 208 tests (security_layer)
+├── audit                — pip-audit (skills/scripts)
+├── validate             — sync-index.py validate (skills/scripts)
+└── deadcode             — vulture (skills/scripts)
+```
+
+### Skills Management — 2026-04-17
+
+| Item | Detail |
+|:-----|:-------|
+| Skill count | 23 skills total |
+| Spec compliance | Flattened to agentskills spec — all skills at `skills/<name>/SKILL.md` (android prefix group excepted) |
+| Tag index | `SKILL_INDEX.yaml` includes `tag_index` for fast tag-based lookups |
+| Search/lookup | `sync-index.py search/lookup/tag` commands for index queries |
+| Tests | 33 tests for sync-index (discovery, validation, sync, tag_index, search, lookup, staleness, real skills) |
+| Bug fix | `_build_tag_index` deduplicates case-folded tags (set-based) |
+
+**Installed upstream skills:**
+
+| Source | Skills |
+|:-------|:-------|
+| mattpocock/skills | design-an-interface, improve-codebase-architecture, ubiquitous-language, github-triage, qa, grill-me, prd-to-issues, request-refactor-plan, write-a-prd, setup-pre-commit |
+| supercent-io/skills-template | security-best-practices |
+| useai-pro/openclaw-skills-security | skill-vetter |
+| dollspace-gay/Tesseract-Vault | security |
+
+**Self-learning skills (vdd/vsdd):**
+
+| Skill | Focus | Self-learning |
+|:------|:------|:-------------|
+| vdd | Verification-Driven Development — code-level correctness | Yes |
+| vsdd | Verification-Driven System Design — architecture-level | Yes |
+
+**Skill comparison (vs upstream):**
+
+| Skill | Focus | Complements |
+|:------|:------|:-----------|
+| obra/superpowers@tdd (54K installs) | TDD discipline — red-green-refactor | Our vdd (broader: types, contracts, properties, not just unit tests) |
+| obra/superpowers@verification-before-completion (44K installs) | Verify before claiming done | Our vdd shares philosophy; vdd adds adversarial + self-learning |
+| addyosmani/agent-skills@spec-driven-development (1.3K installs) | Write specs before coding | Installed globally — fills spec-writing gap |
+| Our vdd + vsdd | Adversarial verification, convergence, self-learning | Neither upstream skill has adversarial roast, fuzz, purity boundaries, or self-update |
+
+**Global skills installed (`~/.agents/skills/`):**
+
+obra/superpowers (14 skills), addyosmani/spec-driven-development, find-skills, kotlin-patterns, compose-multiplatform-patterns, svelte-components, writing-svelte5, owasp-security, tdd, code-review-quality
+GitHub Actions / GitLab CI
+├── lint:skills          — ruff check + format (skills/scripts)
+├── lint:security        — ruff check (security_layer, mutants excluded)
+├── typecheck:skills     — basedpyright (skills/scripts)
+├── typecheck:security   — basedpyright (security_layer)
 ├── test:skills          — pytest (skills/scripts)
 ├── test:security        — pytest 208 tests (security_layer)
 ├── audit                — pip-audit (skills/scripts)
