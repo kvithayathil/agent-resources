@@ -40,7 +40,7 @@ select = [
     "PGH",    # pygrep-hooks
     "S",      # flake8-bandit (security)
 ]
-ignore = ["S603"]  # subprocess without shell=True — we don't use subprocess here
+ignore = ["S603", "S101"]  # S603: subprocess; S101: assert in tests
 
 [tool.ruff.lint.isort]
 known-first-party = ["sync_index"]
@@ -72,3 +72,4 @@ enable = [
 max-line-length = 120
 
 [tool.pytest.ini_options]
+pythonpath = ["."]

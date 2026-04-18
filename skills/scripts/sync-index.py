@@ -374,14 +374,12 @@ def load_index() -> list[dict]:
 
 
 def _build_tag_index(entries: list[dict]) -> dict[str, list[str]]:
-    tag_map: dict[str, list[str]] = {}
+    tag_map: dict[str, set[str]] = {}
     for entry in entries:
         for tag in entry.get("tags", []):
             tag_l = tag.lower()
-            tag_map.setdefault(tag_l, []).append(entry["name"])
-    for names in tag_map.values():
-        names.sort()
-    return dict(sorted(tag_map.items()))
+            tag_map.setdefault(tag_l, set()).add(entry["name"])
+    return {k: sorted(v) for k, v in sorted(tag_map.items())}
 
 
 def write_index(entries: list[dict]) -> None:
