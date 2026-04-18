@@ -155,11 +155,11 @@ def validate_source(val) -> list[str]:
     if not isinstance(val, dict):
         errors.append("Field 'source' must be a mapping")
         return errors
-    if "repo" not in val or not val["repo"]:
-        errors.append("source.repo is required when source is present")
+    if ("repo" not in val or not val["repo"]) and ("gist" not in val or not val["gist"]):
+        errors.append("source.repo or source.gist is required when source is present")
     errors.extend(
         f"source.{field} must be a string"
-        for field in ("repo", "ref", "path", "commit", "fetched_at")
+        for field in ("repo", "ref", "path", "commit", "fetched_at", "gist", "gist_id")
         if field in val and not isinstance(val[field], str)
     )
     return errors

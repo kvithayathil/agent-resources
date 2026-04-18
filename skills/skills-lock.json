@@ -101,6 +101,14 @@
       "provider": "manual",
       "installed_at": "2026-04-16",
       "remote_path": "setup-pre-commit"
+    },
+    "security-scan": {
+      "source": "https://github.com/dollspace-gay/codescanner",
+      "ref": "main",
+      "source_type": "gh-api",
+      "provider": "manual",
+      "installed_at": "2026-04-17",
+      "remote_path": "root"
     }
   }
 }

@@ -204,6 +204,35 @@ skills:
     source_type: gh-api
     provider: manual
     installed_at: '2026-04-16'
+- name: provenance-tracking
+  description: 'Ensures every remote-installed skill has a references/ folder citing its upstream source and can be checked for updates against that source. Runs as a post-install gate and on-demand freshness
+    check. Triggers on: skill install, skill add, provenance, source tracking, update check, freshness, skill audit, sync, lock file, remote skill.
+
+    '
+  path: provenance-tracking
+  triggers:
+  - skill install
+  - skill add
+  - provenance
+  - source tracking
+  - update check
+  - freshness
+  - skill audit
+  - sync
+  - lock file
+  - remote skill
+  - check for updates
+  tags:
+  - tooling
+  - skill-management
+  - provenance
+  - maintenance
+  license: Apache-2.0
+  metadata:
+    author: kvithayathil
+    version: 1.1.0
+  version: 1.1.0
+  token_estimate: 3801
 - name: qa
   description: Interactive QA session where user reports bugs or issues conversationally, and the agent files GitHub issues. Explores the codebase in the background for context and domain language. Use
     when user wants to report bugs, do QA, file issues conversationally, or mentions "QA session".
@@ -307,6 +336,50 @@ skills:
     source_type: npx-skills
     provider: npx-skills
     installed_at: '2026-04-14'
+- name: security-scan
+  description: 'Run multi-engine security scans against any codebase using codescanner (Bandit, Semgrep, Gitleaks, Trivy, Checkov, etc.) with configurable engine profiles and severity gating. Triggers on:
+    security scan, vulnerability scan, sast, secrets detection, dependency audit, code security, scan for vulnerabilities.
+
+    '
+  path: security-scan
+  triggers:
+  - security scan
+  - vulnerability scan
+  - sast
+  - secrets detection
+  - dependency audit
+  - code security
+  - scan for vulnerabilities
+  - security audit
+  - checkov
+  - bandit
+  - trivy
+  - gitleaks
+  - semgrep
+  tags:
+  - security
+  - scanning
+  - sast
+  - secrets
+  - dependencies
+  - iac
+  license: Apache-2.0
+  metadata:
+    author: kvithayathil
+    version: 1.0.0
+    living: 'true'
+    self-learning: 'true'
+    self-updating: 'true'
+    update-policy: evolve-on-evidence
+    last-reviewed: '2026-04-17'
+  version: 1.0.0
+  token_estimate: 1843
+  source:
+    source: https://github.com/dollspace-gay/codescanner
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-17'
 - name: setup-pre-commit
   description: Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. Use when user wants to add pre-commit hooks, set up Husky, configure lint-staged,
     or add commit-time formatting/typechecking/testing.
@@ -409,9 +482,9 @@ skills:
     self-learning: 'true'
     self-updating: 'true'
     update-policy: evolve-on-evidence
-    last-reviewed: '2026-04-14'
+    last-reviewed: '2026-04-18'
   version: 1.0.0
-  token_estimate: 1984
+  token_estimate: 1985
 - name: vsdd
   description: 'Verification-Driven System Design. Use when designing systems, architectures, APIs, data models, service boundaries, or any cross-cutting structural decision. Extends VDD principles to the
     system level: every architectural decision must be verifiable against stated requirements and constraints before it is committed. Triggers on: architecture, system design, design review, API design,
@@ -433,9 +506,9 @@ skills:
     self-learning: 'true'
     self-updating: 'true'
     update-policy: evolve-on-evidence
-    last-reviewed: '2026-04-14'
+    last-reviewed: '2026-04-18'
   version: 1.0.0
-  token_estimate: 2353
+  token_estimate: 2343
 - name: write-a-prd
   description: Create a PRD through user interview, codebase exploration, and module design, then submit as a GitHub issue. Use when user wants to write a PRD, create a product requirements document, or
     plan a new feature.
@@ -476,6 +549,8 @@ tag_index:
   - security
   ddd:
   - ubiquitous-language
+  dependencies:
+  - security-scan
   design:
   - design-an-interface
   - grill-me
@@ -496,8 +571,12 @@ tag_index:
   - prd-to-issues
   - qa
   - request-refactor-plan
+  iac:
+  - security-scan
   interview:
   - grill-me
+  maintenance:
+  - provenance-tracking
   methodology:
   - vdd
   - vsdd
@@ -513,19 +592,30 @@ tag_index:
   project-management:
   - github-triage
   - prd-to-issues
+  provenance:
+  - provenance-tracking
   qa:
   - qa
   refactoring:
   - improve-codebase-architecture
   - request-refactor-plan
+  sast:
+  - security-scan
+  scanning:
+  - security-scan
+  secrets:
+  - security-scan
   secure-design:
   - security
   security:
   - security
   - security-best-practices
+  - security-scan
   - skill-vetter
   setup:
   - setup-pre-commit
+  skill-management:
+  - provenance-tracking
   skill-review:
   - skill-vetter
   system-design:
@@ -536,6 +626,7 @@ tag_index:
   threat-model:
   - security
   tooling:
+  - provenance-tracking
   - setup-pre-commit
   verification:
   - vdd
