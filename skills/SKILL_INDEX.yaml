@@ -69,6 +69,246 @@ skills:
     '
   path: android/android-testing
   token_estimate: 1440
+- name: design-an-interface
+  description: Generate multiple radically different interface designs for a module using parallel sub-agents. Use when user wants to design an API, explore interface options, compare module shapes, or
+    mentions "design it twice".
+  path: architecture/design-an-interface
+  triggers:
+  - design an interface
+  - design an api
+  - explore interface options
+  - compare module shapes
+  - design it twice
+  - api design
+  tags:
+  - architecture
+  - design
+  - api
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 645
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
+- name: improve-codebase-architecture
+  description: Explore a codebase to find opportunities for architectural improvement, focusing on making the codebase more testable by deepening shallow modules. Use when user wants to improve architecture,
+    find refactoring opportunities, consolidate tightly-coupled modules, or make a codebase more AI-navigable.
+  path: architecture/improve-codebase-architecture
+  triggers:
+  - improve architecture
+  - refactoring opportunities
+  - consolidate modules
+  - shallow modules
+  - deep modules
+  - codebase architecture
+  - ai-navigable
+  tags:
+  - architecture
+  - refactoring
+  - design
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 776
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
+- name: ubiquitous-language
+  description: Extract a DDD-style ubiquitous language glossary from the current conversation, flagging ambiguities and proposing canonical terms. Saves to UBIQUITOUS_LANGUAGE.md. Use when user wants to
+    define domain terms, build a glossary, harden terminology, create a ubiquitous language, or mentions "domain model" or "DDD".
+  path: domain/ubiquitous-language
+  triggers:
+  - ubiquitous language
+  - domain terms
+  - glossary
+  - terminology
+  - domain model
+  - ddd
+  - domain-driven design
+  tags:
+  - domain
+  - ddd
+  - documentation
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 572
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
+- name: github-triage
+  description: Triage GitHub issues through a label-based state machine with interactive grilling sessions. Use when user wants to triage issues, review incoming bugs or feature requests, prepare issues
+    for an AFK agent, or manage issue workflow.
+  path: github/github-triage
+  triggers:
+  - triage issues
+  - github triage
+  - review bugs
+  - feature requests
+  - issue workflow
+  - ready for agent
+  tags:
+  - github
+  - project-management
+  - workflow
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 1504
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
+- name: qa
+  description: Interactive QA session where user reports bugs or issues conversationally, and the agent files GitHub issues. Explores the codebase in the background for context and domain language. Use
+    when user wants to report bugs, do QA, file issues conversationally, or mentions "QA session".
+  path: github/qa
+  triggers:
+  - qa session
+  - report bugs
+  - file issues
+  - qa
+  - bug report
+  tags:
+  - testing
+  - qa
+  - github
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 720
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
+- name: grill-me
+  description: Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree. Use when user wants to stress-test a plan, get grilled
+    on their design, or mentions "grill me".
+  path: planning/grill-me
+  triggers:
+  - grill me
+  - stress test a plan
+  - interview about design
+  - decision tree
+  - shared understanding
+  tags:
+  - planning
+  - design
+  - interview
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 72
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
+- name: prd-to-issues
+  description: Break a PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when user wants to convert a PRD to issues, create implementation tickets, or break down a
+    PRD into work items.
+  path: planning/prd-to-issues
+  triggers:
+  - prd to issues
+  - convert prd
+  - implementation tickets
+  - break down prd
+  - create issues from prd
+  - vertical slices
+  tags:
+  - planning
+  - project-management
+  - github
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 584
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
+- name: request-refactor-plan
+  description: Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue. Use when user wants to plan a refactor, create a refactoring RFC, or break a refactor
+    into safe incremental steps.
+  path: planning/request-refactor-plan
+  triggers:
+  - refactor plan
+  - refactoring rfc
+  - plan a refactor
+  - incremental refactor
+  - tiny commits refactor
+  tags:
+  - planning
+  - refactoring
+  - github
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 482
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
+- name: write-a-prd
+  description: Create a PRD through user interview, codebase exploration, and module design, then submit as a GitHub issue. Use when user wants to write a PRD, create a product requirements document, or
+    plan a new feature.
+  path: planning/write-a-prd
+  triggers:
+  - write a prd
+  - product requirements document
+  - plan a new feature
+  - create a prd
+  tags:
+  - planning
+  - product
+  - design
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 512
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
 - name: security
   description: 'Security best practices reference for cryptographic systems, secure design principles, vulnerability reporting, and threat modeling. Covers defense in depth, least privilege, fail-safe defaults,
     post-quantum cryptography, memory safety, supply chain security, and formal verification. Triggers on: security, cryptography, encryption, AES, Argon2, post-quantum, threat model, vulnerability, secure
@@ -147,6 +387,33 @@ skills:
     source_type: npx-skills
     provider: npx-skills
     installed_at: '2026-04-14'
+- name: setup-pre-commit
+  description: Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. Use when user wants to add pre-commit hooks, set up Husky, configure lint-staged,
+    or add commit-time formatting/typechecking/testing.
+  path: tooling/setup-pre-commit
+  triggers:
+  - pre-commit hooks
+  - husky
+  - lint-staged
+  - prettier
+  - commit hooks
+  - setup pre-commit
+  tags:
+  - tooling
+  - git
+  - setup
+  license: MIT
+  metadata:
+    author: mattpocock
+    version: '1.0'
+  version: '1.0'
+  token_estimate: 586
+  source:
+    source: https://github.com/mattpocock/skills
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-16'
 - name: vdd
   description: 'Verification-Driven Development. Use when writing implementation code, refactoring, fixing bugs, or any task where correctness matters. Enforces a verify-before-trust discipline: every piece
     of behavior must have a verifiable check before it is considered done. Triggers on: verify, validation, correctness, testing, TDD, acceptance criteria, specification, contract, invariant, property-based.

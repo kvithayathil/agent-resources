@@ -21,6 +21,86 @@
       "provider": "manual",
       "installed_at": "2026-04-14",
       "remote_path": "SECURITY.md"
+    },
+    "write-a-prd": {
+      "source": "https://github.com/mattpocock/skills",
+      "ref": "main",
+      "source_type": "gh-api",
+      "provider": "manual",
+      "installed_at": "2026-04-16",
+      "remote_path": "write-a-prd"
+    },
+    "prd-to-issues": {
+      "source": "https://github.com/mattpocock/skills",
+      "ref": "main",
+      "source_type": "gh-api",
+      "provider": "manual",
+      "installed_at": "2026-04-16",
+      "remote_path": "prd-to-issues"
+    },
+    "design-an-interface": {
+      "source": "https://github.com/mattpocock/skills",
+      "ref": "main",
+      "source_type": "gh-api",
+      "provider": "manual",
+      "installed_at": "2026-04-16",
+      "remote_path": "design-an-interface"
+    },
+    "improve-codebase-architecture": {
+      "source": "https://github.com/mattpocock/skills",
+      "ref": "main",
+      "source_type": "gh-api",
+      "provider": "manual",
+      "installed_at": "2026-04-16",
+      "remote_path": "improve-codebase-architecture"
+    },
+    "grill-me": {
+      "source": "https://github.com/mattpocock/skills",
+      "ref": "main",
+      "source_type": "gh-api",
+      "provider": "manual",
+      "installed_at": "2026-04-16",
+      "remote_path": "grill-me"
+    },
+    "github-triage": {
+      "source": "https://github.com/mattpocock/skills",
+      "ref": "main",
+      "source_type": "gh-api",
+      "provider": "manual",
+      "installed_at": "2026-04-16",
+      "remote_path": "github-triage"
+    },
+    "qa": {
+      "source": "https://github.com/mattpocock/skills",
+      "ref": "main",
+      "source_type": "gh-api",
+      "provider": "manual",
+      "installed_at": "2026-04-16",
+      "remote_path": "qa"
+    },
+    "request-refactor-plan": {
+      "source": "https://github.com/mattpocock/skills",
+      "ref": "main",
+      "source_type": "gh-api",
+      "provider": "manual",
+      "installed_at": "2026-04-16",
+      "remote_path": "request-refactor-plan"
+    },
+    "ubiquitous-language": {
+      "source": "https://github.com/mattpocock/skills",
+      "ref": "main",
+      "source_type": "gh-api",
+      "provider": "manual",
+      "installed_at": "2026-04-16",
+      "remote_path": "ubiquitous-language"
+    },
+    "setup-pre-commit": {
+      "source": "https://github.com/mattpocock/skills",
+      "ref": "main",
+      "source_type": "gh-api",
+      "provider": "manual",
+      "installed_at": "2026-04-16",
+      "remote_path": "setup-pre-commit"
     }
   }
 }
