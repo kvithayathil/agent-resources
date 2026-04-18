@@ -20,10 +20,12 @@ metadata:
   self-learning: "true"
   self-updating: "true"
   update-policy: "evolve-on-evidence"
-  last-reviewed: "2026-04-14"
+  last-reviewed: "2026-04-18"
+source:
+  gist: https://gist.github.com/dollspace-gay/d8d3bc3ecf4188df049d7a4726bb2a00
+  gist_id: d8d3bc3ecf4188df049d7a4726bb2a00
+  fetched_at: "2026-04-18T02:25:24Z"
 ---
-
-# Verification-Driven System Design (VSDD)
 
 ## Overview
 
