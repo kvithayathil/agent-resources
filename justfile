@@ -88,3 +88,22 @@ lookup name:
 # List all indexed skills
 list:
     "{{fixdir}}/skills/scripts/skill-manager" list
+
+# Audit remote skill provenance (SOURCE.md compliance)
+provenance cmd="all":
+    SKILLS_DIR="{{fixdir}}/skills" bash "{{fixdir}}/skills/provenance-tracking/scripts/provenance-check.sh" {{cmd}}
+
+# Check upstream freshness for remote skills
+freshness:
+    SKILLS_DIR="{{fixdir}}/skills" bash "{{fixdir}}/skills/provenance-tracking/scripts/provenance-check.sh" fresh
+
+# Check VDD upstream gist for changes
+vdd-check *args="":
+    bash "{{fixdir}}/skills/vdd/scripts/check-upstream.sh" {{args}}
+
+# Check VSDD upstream gist for changes
+vsdd-check *args="":
+    bash "{{fixdir}}/skills/vsdd/scripts/check-upstream.sh" {{args}}
+
+# Check all self-updating skills for upstream changes
+upstream-check: vdd-check vsdd-check
