@@ -6,5 +6,8 @@
   "priority": "high",
   "created_by": "Jm2A",
   "created_at": "2026-04-18T02:07:12.515773Z",
-  "updated_at": "2026-04-18T02:07:12.515773Z"
+  "updated_at": "2026-04-18T02:07:13.993612Z",
+  "labels": [
+    "feature"
+  ]
 }
