@@ -177,6 +177,32 @@ skills:
     source_type: gh-api
     provider: manual
     installed_at: '2026-04-16'
+- name: modern-git-patterns
+  description: 'Use when working with git commands, planning git workflows, advising on git best practices, or needing version-aware git guidance. Provides modern patterns, commands, and approaches for
+    git 2.50+. Covers history rewriting, maintenance, sparse operations, config-based hooks, signing, blame techniques, partial clone, and workflow patterns. Triggers on: git, rebase, merge, branch, commit,
+    blame, diff, bisect, worktree, stash, submodule, hook, maintenance, sparse-checkout, partial clone, signing, force push, reflog, cherry-pick.
+
+    '
+  path: modern-git-patterns
+  tags:
+  - git
+  - version-control
+  - patterns
+  - workflow
+  - devops
+  license: Apache-2.0
+  metadata:
+    author: kvithayathil
+    version: 1.0.0
+    living: 'true'
+    self-learning: 'true'
+    self-updating: 'true'
+    update-policy: evolve-on-evidence
+    last-reviewed: '2026-04-21'
+    min-git-version: 2.50.0
+    verified-git-version: 2.54.0
+  version: 1.0.0
+  token_estimate: 4735
 - name: prd-to-issues
   description: Break a PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when user wants to convert a PRD to issues, create implementation tickets, or break down a
     PRD into work items.
@@ -560,11 +586,14 @@ tag_index:
   - vsdd
   development:
   - vdd
+  devops:
+  - modern-git-patterns
   documentation:
   - ubiquitous-language
   domain:
   - ubiquitous-language
   git:
+  - modern-git-patterns
   - setup-pre-commit
   github:
   - github-triage
@@ -582,6 +611,8 @@ tag_index:
   - vsdd
   owasp:
   - security-best-practices
+  patterns:
+  - modern-git-patterns
   planning:
   - grill-me
   - prd-to-issues
@@ -631,10 +662,13 @@ tag_index:
   verification:
   - vdd
   - vsdd
+  version-control:
+  - modern-git-patterns
   vetting:
   - skill-vetter
   web:
   - security-best-practices
   workflow:
   - github-triage
+  - modern-git-patterns
 
