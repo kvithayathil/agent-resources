@@ -7,85 +7,72 @@ created: 2026-04-21
 updated: 2026-04-21
 ---
 
-# Session Handover: Modern Git Patterns Skill
+# Handover: Modern Git Patterns Skill Authoring
 
 **Date**: 2026-04-21
-**Session type**: Research → Skill authoring
+**Status**: Complete
+**Agent**: glm-5.1 via opencode
 
-## What Was Done
+## Summary
 
-1. **Research phase**: Downloaded subtitles from 6 YouTube talks via `yt-dlp --cookies-from-browser brave`
-2. **Release notes**: Fetched git 2.50–2.54 release notes via `glab api` from gitlab.com/git-scm/git
-3. **Blog analysis**: Fetched GitHub Blog "Highlights from Git 2.54" (covers 2.53 + 2.54)
-4. **Synthesis**: Compiled evidence into structured skill with version-aware annotations
-5. **Skill authored**: `skills/modern-git-patterns/` — 489 lines, self-learning, VDD/VSDD-aligned
-6. **Quality gate**: `just check` passes (all 26 skills valid)
+Researched modern git patterns from 6 expert talks, 5 release notes, and GitHub Blog highlights. Synthesized into a version-aware agent skill at `skills/modern-git-patterns/`. All quality gates pass.
 
-## Skill Location
+## Created Items
 
-```
-skills/modern-git-patterns/
-├── SKILL.md                              (489 lines — main skill)
-└── references/
-    ├── VERSION_FEATURE_MAP.md            (feature availability by git version)
-    ├── DETAILED_PATTERNS.md              (expanded diff, merge, worktree, stash, etc.)
-    ├── COMMAND_QUICK_REFERENCE.md        (one-liner commands)
-    ├── SOURCES.md                        (full bibliography)
-    ├── LESSONS_LEARNED.md                (empty — populated via real-world use)
-    └── CHANGELOG.md                      (v1.0.0 entry)
-```
+| Item | Location | Description |
+|------|----------|-------------|
+| Agent skill | `skills/modern-git-patterns/SKILL.md` | 489-line self-learning skill (git 2.50+) |
+| Version map | `skills/modern-git-patterns/references/VERSION_FEATURE_MAP.md` | Features by git version |
+| Detailed patterns | `skills/modern-git-patterns/references/DETAILED_PATTERNS.md` | Expanded diff, merge, worktree, stash, etc. |
+| Quick reference | `skills/modern-git-patterns/references/COMMAND_QUICK_REFERENCE.md` | One-liner commands |
+| Sources | `skills/modern-git-patterns/references/SOURCES.md` | Full bibliography |
+| Lessons log | `skills/modern-git-patterns/references/LESSONS_LEARNED.md` | Empty — populated via use |
+| Changelog | `skills/modern-git-patterns/references/CHANGELOG.md` | v1.0.0 entry |
+| Knowledge page | `crosslink:modern-git-reference` | Full research reference document |
 
-## Sources Analyzed
+## Research Artifacts
 
-| Source | Type | Key Contributions |
-|--------|------|-------------------|
-| Git 2.50.0 RelNotes | Release notes | Incremental MIDX, reflog expire, maintenance tasks |
-| Git 2.51.0 RelNotes | Release notes | Stash import/export, reftable announcement, switch/restore stable |
-| Git 2.52.0 RelNotes | Release notes | `git last-modified`, `git repo`, geometric maintenance, sparse index |
-| Git 2.53.0 RelNotes | Release notes | `git replay` atomic refs, `blame --diff-algorithm`, `maintenance is-needed` |
-| Git 2.54.0 RelNotes | Release notes | `git history`, config-based hooks, geometric default, `log -L` + pickaxe |
-| GitHub Blog 2.54 | Curated highlights | Detailed explanations of `git history`, hooks, geometric repack, HTTP 429 |
-| Edward Thomson (NDC 2025) | Video talk | Git internals, libgit2, usability patterns |
-| "15ish git commands" | Video talk | Essential command set, practical workflow |
-| "10 Little-Known Features" | Video talk | Notes, worktree, reflog, bisect, rev-list, format-patch, request-pull |
-| "So You Think You Know Git Pt2" (DevWorld) | Video talk | Advanced patterns, internals |
-| Scott Chacon (FOSDEM 2024) | Video talk | blame -C, sparse checkout, partial clone, maintenance, SSH signing, rerere, fsmonitor |
-| "Why everyone hates submodules" | Video talk | Submodule problems, alternatives |
+| File | Location | Source |
+|------|----------|--------|
+| video1.en.srt | `.agent-workspace/git-research/` | Edward Thomson — NDC London 2025 |
+| video2.en.srt | `.agent-workspace/git-research/` | "you only need 15ish git commands" |
+| video3.en.srt | `.agent-workspace/git-research/` | "10 Little-Known Features You'll Love" |
+| video4.en.srt | `.agent-workspace/git-research/` | "So You Think You Know Git Part 2" — DevWorld 2024 |
+| video5.en.srt | `.agent-workspace/git-research/` | Scott Chacon — FOSDEM 2024 |
+| video6.en.srt | `.agent-workspace/git-research/` | "Why everyone hates git submodules" |
+| video*-unique.txt | `.agent-workspace/git-research/` | Deduplicated text extracts |
 
-## VDD/VSDD Verification
+## Sources Consulted
 
-- Every feature claim annotated with minimum git version (`[2.XX+]`)
-- Version annotations sourced directly from release notes (primary evidence)
-- GitHub Blog used as secondary interpretation layer
-- Video talks used for pattern/workflow guidance (not version claims)
-- Common Mistakes table grounded in repeated expert recommendations
-- No claims made without traceable source
+**Primary evidence** (version claims grounded here):
+- Git 2.50.0–2.54.0 Release Notes — `glab api` from gitlab.com/git-scm/git
+- GitHub Blog "Highlights from Git 2.54" — https://github.blog/open-source/git/highlights-from-git-2-54/
 
-## Artifacts in .agent-workspace
+**Pattern/workflow guidance**:
+- Edward Thomson, NDC London 2025 (video)
+- "you only need 15ish git commands" (video)
+- "10 Little-Known Features You'll Love" (video)
+- "So You Think You Know Git Part 2", DevWorld 2024 (video)
+- Scott Chacon, FOSDEM 2024 (video)
+- "Why everyone hates git submodules" (video)
 
-```
-.agent-workspace/git-research/
-├── video1.en.srt   (Edward Thomson NDC 2025)
-├── video2.en.srt   (15ish git commands)
-├── video3.en.srt   (10 Little-Known Features)
-├── video4.en.srt   (So You Think You Know Git Pt2)
-├── video5.en.srt   (Scott Chacon FOSDEM 2024)
-├── video6.en.srt   (Why everyone hates submodules)
-└── video*-unique.txt (deduplicated text extracts for videos 1,2,4,5)
-```
+## Verification
 
-## Next Steps for Continuation
+- VDD/VSDD applied: every feature claim annotated with `[2.XX+]` from release notes
+- `just check`: all 26 skills valid, all lint/type/dead-code/duplication/security gates pass
+- Local git version verified: 2.54.0
+- Skill registered in SKILL_INDEX.yaml via `just sync`
 
-- **Update skill** when git 2.55+ releases: fetch new RelNotes, update VERSION_FEATURE_MAP
-- **Populate LESSONS_LEARNED.md**: use the skill in real tasks, record patterns that prove useful
-- **Promote validated lessons**: after 3+ real-world validations, move from LESSONS_LEARNED to SKILL.md
-- **Prune stale content**: if any section proves unused across multiple sessions, remove it
-- **Verify against local git**: skill assumes git 2.54 — local version is 2.54.0 (verified)
+## Gotchas for Continuation
 
-## Gotchas for Future Sessions
+- SRT files are verbose — extract unique lines with `rg -v '^\d+$|^[0-9]{2}:[0-9]{2}.*-->' file | rg -v '^\s*$' | sort -u`
+- `glab api` needs URL-encoded paths (`git-scm%2Fgit`)
+- AgentSkills spec: no `sources` in frontmatter, SKILL.md < 500 lines
+- Subagent `explore` struggled with large SRT files — preprocess first
 
-- SRT subtitle files are very verbose (auto-generated captions, triple-repeated lines)
-- Subagent `explore` type struggled to read large SRT files — better to extract unique lines first with `rg -v | sort -u`
-- `glab api` needs URL-encoded path: `git-scm%2Fgit` for the git project
-- `sources` is not a valid frontmatter field in AgentSkills spec — moved to references/SOURCES.md
-- SKILL.md must be < 500 lines per spec — moved detailed content to references/DETAILED_PATTERNS.md
+## Next Steps
+
+1. Update when git 2.55+ releases (fetch RelNotes, update VERSION_FEATURE_MAP)
+2. Populate LESSONS_LEARNED.md through real-world use
+3. Promote validated lessons to SKILL.md after 3+ confirmations
+4. Prune unused sections
