@@ -38,6 +38,30 @@ skills:
     '
   path: android/android-error-handling
   token_estimate: 1826
+- name: android-layouts
+  description: 'Android layout best practices for XML/Views and Jetpack Compose. Covers hierarchy flattening, ConstraintLayout, merge/include, ViewStub, Compose layout phases, interop between View and Compose,
+    adaptive layouts, and profiling tools. Use when creating, reviewing, or optimizing Android layouts in XML or Compose. Trigger on: layout, XML, ConstraintLayout, LinearLayout, RecyclerView, merge, include,
+    ViewStub, compose layout, layout phases, LazyColumn, adaptive layout, WindowSizeClass, foldable, Layout Inspector, lint, profiling, hierarchy, double taxation, interop, AndroidView, ComposeView.
+
+    '
+  path: android/android-layouts
+  tags:
+  - android
+  - layouts
+  - compose
+  - xml
+  - performance
+  license: Apache-2.0
+  metadata:
+    author: kvithayathil
+    version: 1.0.0
+    living: 'true'
+    self-learning: 'true'
+    self-updating: 'true'
+    update-policy: evolve-on-evidence
+    last-reviewed: '2026-04-24'
+  version: 1.0.0
+  token_estimate: 1618
 - name: android-module-structure
   description: Module layout, dependency rules, and Gradle convention plugins for Android and Kotlin Multiplatform (KMP) projects. Use this skill whenever setting up a new Android/KMP project, deciding
     where a new module should live, asking "how should I structure this", creating a new feature module, adding a core submodule, configuring Gradle convention plugins, working with version catalogs, or
@@ -202,7 +226,7 @@ skills:
     min-git-version: 2.50.0
     verified-git-version: 2.54.0
   version: 1.0.0
-  token_estimate: 4735
+  token_estimate: 3723
 - name: prd-to-issues
   description: Break a PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when user wants to convert a PRD to issues, create implementation tickets, or break down a
     PRD into work items.
@@ -561,6 +585,8 @@ skills:
     provider: manual
     installed_at: '2026-04-16'
 tag_index:
+  android:
+  - android-layouts
   api:
   - design-an-interface
   architecture:
@@ -569,6 +595,8 @@ tag_index:
   - vsdd
   authentication:
   - security-best-practices
+  compose:
+  - android-layouts
   correctness:
   - vdd
   cryptography:
@@ -604,6 +632,8 @@ tag_index:
   - security-scan
   interview:
   - grill-me
+  layouts:
+  - android-layouts
   maintenance:
   - provenance-tracking
   methodology:
@@ -613,6 +643,8 @@ tag_index:
   - security-best-practices
   patterns:
   - modern-git-patterns
+  performance:
+  - android-layouts
   planning:
   - grill-me
   - prd-to-issues
@@ -671,4 +703,6 @@ tag_index:
   workflow:
   - github-triage
   - modern-git-patterns
+  xml:
+  - android-layouts
 
