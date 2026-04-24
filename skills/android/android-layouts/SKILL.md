@@ -8,7 +8,8 @@ description: >
   layout, XML, ConstraintLayout, LinearLayout, RecyclerView, merge, include, ViewStub,
   compose layout, layout phases, LazyColumn, adaptive layout, WindowSizeClass, foldable,
   Layout Inspector, lint, profiling, hierarchy, double taxation, interop, AndroidView,
-  ComposeView.
+  ComposeView, modifier order, WindowInsets, contentPadding, Scaffold, CoordinatorLayout,
+  ViewPager2, HorizontalPager, Material 3.
 tags:
   - android
   - layouts
@@ -18,7 +19,7 @@ tags:
 license: Apache-2.0
 metadata:
   author: kvithayathil
-  version: "1.0.0"
+  version: "1.1.0"
   living: "true"
   self-learning: "true"
   self-updating: "true"
@@ -38,9 +39,10 @@ structure, and performance.
 
 | File | Topics |
 |------|--------|
-| [XML_LAYOUTS.md](references/XML_LAYOUTS.md) | ConstraintLayout, merge/include, ViewStub, double taxation, RecyclerView |
-| [COMPOSE_LAYOUTS.md](references/COMPOSE_LAYOUTS.md) | Layout phases, custom layouts, SubcomposeLayout |
+| [XML_LAYOUTS.md](references/XML_LAYOUTS.md) | ConstraintLayout, merge/include, ViewStub, double taxation, RecyclerView, CoordinatorLayout, ViewPager2, WindowInsets |
+| [COMPOSE_LAYOUTS.md](references/COMPOSE_LAYOUTS.md) | Layout phases, custom layouts, SubcomposeLayout, modifier order, WindowInsets, contentPadding, HorizontalPager |
 | [INTEROP.md](references/INTEROP.md) | View-to-Compose migration, AndroidView, ComposeView |
+| [MATERIAL_DESIGN.md](references/MATERIAL_DESIGN.md) | Scaffold, TopAppBar, NavigationBar/Rail, drawers, inset contracts |
 | [PROFILING_TOOLS.md](references/PROFILING_TOOLS.md) | Layout Inspector, Lint, Perfetto, benchmarking |
 | [LESSONS_LEARNED.md](references/LESSONS_LEARNED.md) | Self-learning log |
 | [CHANGELOG.md](references/CHANGELOG.md) | Update history |
@@ -119,6 +121,21 @@ When a `TextView` has an adjacent `ImageView` (icon + text), replace both with a
 
 This eliminates one view from the hierarchy.
 
+### CoordinatorLayout
+
+For coordinating scroll-dependent UI (collapsing toolbar, FAB, snackbar). See
+[references/XML_LAYOUTS.md](references/XML_LAYOUTS.md) for full patterns with
+`AppBarLayout`, `CollapsingToolbarLayout`, and scroll flags.
+
+Key rule: connect `app:layout_behavior="@string/appbar_scrolling_view_behavior"` on
+the scrolling sibling, and `app:layout_scrollFlags` on the AppBar children.
+
+### ViewPager2
+
+RecyclerView-based paging. Use `FragmentStateAdapter` for fragment pages,
+`RecyclerView.Adapter` for view pages. Connect with `TabLayoutMediator` for tabs.
+For new Compose code, prefer `HorizontalPager` (see Compose Layout Rules).
+
 ---
 
 ## Compose Layout Rules
@@ -143,6 +160,50 @@ Modifier.offset(scrollOffset.dp, 0.dp)
 ```
 
 For detailed stability and recomposition guidance, see the **android-compose-ui** skill.
+
+### Modifier Order
+
+Modifiers apply **outside-in**. Order changes visual output:
+
+```kotlin
+// Background fills padding area
+Modifier.background(Color.Red).padding(16.dp)
+
+// Background is inset by padding
+Modifier.padding(16.dp).background(Color.Red)
+```
+
+Read modifiers outside-in. The first modifier is the outermost layer. See
+[references/COMPOSE_LAYOUTS.md](references/COMPOSE_LAYOUTS.md) for full ordering guide.
+
+### WindowInsets
+
+Edge-to-edge is the default for apps targeting Android 15+. Handle system bar insets
+explicitly:
+
+- **Compose M3**: `Scaffold` handles insets automatically via `innerPadding`.
+- **Compose manual**: Use `Modifier.windowInsetsPadding()` or `WindowInsets.systemBars`.
+- **XML**: `android:fitsSystemWindows="true"` or `ViewCompat.setOnApplyWindowInsetsListener`.
+
+**Consume each inset edge exactly once.** Double-consumption causes layout gaps.
+
+### Content Padding in Lazy Layouts
+
+Use `contentPadding` parameter, not `Modifier.padding`:
+
+```kotlin
+// GOOD: items scroll into padding
+LazyColumn(contentPadding = PaddingValues(16.dp)) { ... }
+
+// BAD: padding reduces scroll area
+LazyColumn(modifier = Modifier.padding(16.dp)) { ... }
+```
+
+### Material 3 Scaffold
+
+See [references/MATERIAL_DESIGN.md](references/MATERIAL_DESIGN.md) for full M3 layout
+component guidance. Key rule: always apply `innerPadding` as `contentPadding` on
+scrollable content inside `Scaffold`, never as `Modifier.padding`.
 
 ### Custom Layouts
 
@@ -199,7 +260,8 @@ when (windowSizeClass.widthSizeClass) {
 ```
 
 For foldables, use `WindowInfoTracker` to detect fold posture and adjust layout accordingly.
-Always design for the smallest target first, then expand.
+Always design for the smallest target first, then expand. Use `NavigationBar` for Compact,
+`NavigationRail` for Medium+ (see [references/MATERIAL_DESIGN.md](references/MATERIAL_DESIGN.md)).
 
 ---
 
@@ -242,5 +304,9 @@ citations.
 - [ ] Compound drawables replacing icon+TextView pairs
 - [ ] Deferred state reads in Compose layout modifiers
 - [ ] Stable keys in LazyColumn/LazyRow items
+- [ ] Modifier order verified — visual output matches intent
+- [ ] `contentPadding` used (not `Modifier.padding`) on lazy layouts
+- [ ] WindowInsets consumed exactly once per edge
+- [ ] Scaffold `innerPadding` applied as `contentPadding` on scrollable content
 - [ ] Adaptive layout tested at Compact/Medium/Expanded
 - [ ] Layout Inspector verified — no unexpected recompositions or deep nesting

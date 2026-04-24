@@ -7,6 +7,9 @@ Sources:
 - [Optimize layout hierarchy](https://developer.android.com/topic/performance/optimizing-layouts)
 - [Optimize View hierarchies](https://developer.android.com/topic/performance/optimizing-view-hierarchies)
 - [Reusing layouts](https://developer.android.com/develop/ui/views/layout/reusing-layouts)
+- [CoordinatorLayout](https://developer.android.com/develop/ui/views/layout/coordinator-layout)
+- [ViewPager2](https://developer.android.com/develop/ui/views/viewpager)
+- [WindowInsets (Views)](https://developer.android.com/develop/ui/views/layout/edge-to-edge)
 
 ---
 
@@ -256,3 +259,205 @@ Android Lint detects common layout issues:
 | Hardcoded text | `HardcodedText` | Text not using string resources |
 
 Run: `./gradlew :app:lint`
+
+---
+
+## CoordinatorLayout
+
+A super-powered FrameLayout that coordinates dependent child views through `CoordinatorLayout.Behavior`.
+The primary use case is coordinating scroll-dependent UI (collapsing toolbar, floating action button,
+snackbar).
+
+### Collapsing Toolbar Layout
+
+```xml
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                app:layout_collapseMode="parallax" />
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:layout_collapseMode="pin" />
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+```
+
+### Key Concepts
+
+| Concept | Purpose |
+|---------|---------|
+| `layout_scrollFlags` | Controls how the AppBar responds to scroll (`scroll`, `exitUntilCollapsed`, `enterAlways`, `snap`) |
+| `layout_collapseMode` | How child behaves during collapse (`pin` stays, `parallax` scrolls with ratio) |
+| `layout_behavior` | Links a view's behavior to CoordinatorLayout dispatches |
+| `AppBarLayout.ScrollingViewBehavior` | Positions the scrolling content below the AppBar |
+
+### Scroll Flags
+
+| Flag | Behavior |
+|------|----------|
+| `scroll` | Enables the view to scroll off screen |
+| `exitUntilCollapsed` | Scrolls until minHeight is reached, then pins |
+| `enterAlways` | Reappears immediately on downward scroll |
+| `enterAlwaysCollapsed` | Reappears at minHeight first, then expands on further scroll |
+| `snap` | Snaps to fully visible or fully hidden based on scroll threshold |
+
+### Custom Behaviors
+
+When you need view coordination beyond built-in behaviors:
+
+```kotlin
+class FadeOutBehavior(context: Context, attrs: AttributeSet) :
+    CoordinatorLayout.Behavior<View>(context, attrs) {
+
+    override fun onDependentViewChanged(
+        parent: CoordinatorLayout,
+        child: View,
+        dependency: View
+    ): Boolean {
+        val maxScroll = dependency.height.toFloat()
+        val currentScroll = dependency.translationY
+        child.alpha = 1f - (currentScroll / maxScroll)
+        return true
+    }
+}
+```
+
+Register in XML: `app:layout_behavior="com.example.FadeOutBehavior"`
+
+### Performance Note
+
+CoordinatorLayout dispatches scroll events to all children with behaviors on every scroll
+frame. Keep `onDependentViewChanged` implementations lightweight — no allocations, no
+layout requests.
+
+https://developer.android.com/develop/ui/views/layout/coordinator-layout
+
+---
+
+## ViewPager2
+
+RecyclerView-based paging container. Replaces the deprecated `ViewPager`.
+
+### Setup
+
+```xml
+<androidx.viewpager2.widget.ViewPager2
+    android:id="@+id/pager"
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    app:layout_constraintBottom_toBottomOf="parent" />
+```
+
+```kotlin
+val adapter = FragmentStateAdapter(this)
+viewPager.adapter = adapter
+```
+
+### Key Differences from ViewPager
+
+| Feature | ViewPager | ViewPager2 |
+|---------|-----------|------------|
+| Adapter | `PagerAdapter` | `RecyclerView.Adapter` or `FragmentStateAdapter` |
+| RTL support | Manual | Built-in |
+| Vertical paging | No | `orientation="vertical"` |
+| Offscreen limit | `setOffscreenPageLimit()` | Same, but default is `OFFSCREEN_PAGE_LIMIT_DEFAULT` (0) |
+| Notify changes | `notifyDataSetChanged()` | Same, but backed by DiffUtil via RecyclerView |
+
+### Common Patterns
+
+**With TabLayout:**
+
+```kotlin
+TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+    tab.text = tabs[position].title
+}.attach()
+```
+
+**Page transformation:**
+
+```kotlin
+viewPager.setPageTransformer { page, position ->
+    page.alpha = 1f - abs(position)
+}
+```
+
+### Migration to Compose
+
+For new code, prefer `HorizontalPager` (Compose). Keep `ViewPager2` when:
+- Pages are Fragments with complex lifecycle needs
+- Integrating with existing TabLayout + Fragment architecture
+- Page content requires View system features (SurfaceView, TextureView)
+
+https://developer.android.com/develop/ui/views/viewpager
+
+---
+
+## WindowInsets in XML
+
+### fitsSystemWindows
+
+The simplest approach for edge-to-edge handling in XML:
+
+```xml
+<LinearLayout
+    android:fitsSystemWindows="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+</LinearLayout>
+```
+
+Sets padding to account for system bars. Only works for direct children of the window
+decor view or when no parent has already consumed the insets.
+
+### Manual Inset Handling
+
+For precise control:
+
+```kotlin
+override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    super.onViewCreated(view, savedInstanceState)
+
+    ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
+        val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+        v.updatePadding(
+            top = systemBars.top,
+            bottom = systemBars.bottom
+        )
+        insets
+    }
+}
+```
+
+### Inset Consumption Rules (XML)
+
+- **Insets are consumed once.** If a parent handles `fitsSystemWindows`, children won't
+  receive them unless the parent dispatches manually.
+- Use `WindowInsetsCompat` for backward compatibility.
+- `setOnApplyWindowInsetsListener` overrides `fitsSystemWindows` on the same view.
+
+https://developer.android.com/develop/ui/views/layout/edge-to-edge

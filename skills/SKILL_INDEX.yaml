@@ -41,7 +41,8 @@ skills:
 - name: android-layouts
   description: 'Android layout best practices for XML/Views and Jetpack Compose. Covers hierarchy flattening, ConstraintLayout, merge/include, ViewStub, Compose layout phases, interop between View and Compose,
     adaptive layouts, and profiling tools. Use when creating, reviewing, or optimizing Android layouts in XML or Compose. Trigger on: layout, XML, ConstraintLayout, LinearLayout, RecyclerView, merge, include,
-    ViewStub, compose layout, layout phases, LazyColumn, adaptive layout, WindowSizeClass, foldable, Layout Inspector, lint, profiling, hierarchy, double taxation, interop, AndroidView, ComposeView.
+    ViewStub, compose layout, layout phases, LazyColumn, adaptive layout, WindowSizeClass, foldable, Layout Inspector, lint, profiling, hierarchy, double taxation, interop, AndroidView, ComposeView, modifier
+    order, WindowInsets, contentPadding, Scaffold, CoordinatorLayout, ViewPager2, HorizontalPager, Material 3.
 
     '
   path: android/android-layouts
@@ -54,14 +55,14 @@ skills:
   license: Apache-2.0
   metadata:
     author: kvithayathil
-    version: 1.0.0
+    version: 1.1.0
     living: 'true'
     self-learning: 'true'
     self-updating: 'true'
     update-policy: evolve-on-evidence
     last-reviewed: '2026-04-24'
-  version: 1.0.0
-  token_estimate: 1618
+  version: 1.1.0
+  token_estimate: 2238
 - name: android-module-structure
   description: Module layout, dependency rules, and Gradle convention plugins for Android and Kotlin Multiplatform (KMP) projects. Use this skill whenever setting up a new Android/KMP project, deciding
     where a new module should live, asking "how should I structure this", creating a new feature module, adding a core submodule, configuring Gradle convention plugins, working with version catalogs, or
