@@ -8,6 +8,7 @@ updated: 2026-04-24
 ---
 
 
+
 # Handover: Android Layouts Best Practices Skill Authoring
 
 **Date**: 2026-04-24
@@ -110,13 +111,18 @@ metadata:
 
 ## Next Steps
 
-1. Create directory: `mkdir -p skills/android/android-layouts/references`
-2. Write SKILL.md — concise main skill
-3. Write references/XML_LAYOUTS.md
-4. Write references/COMPOSE_LAYOUTS.md
-5. Write references/MATERIAL_DESIGN.md
-6. Write references/PROFILING_TOOLS.md (with citations)
-7. Write references/LESSONS_LEARNED.md (empty template)
-8. Write references/CHANGELOG.md (initial entry)
-9. Run `just sync`
-10. Run `just check`
+1. ~~Create directory~~ Done
+2. ~~Write SKILL.md~~ Done (246 lines)
+3. ~~Write references/XML_LAYOUTS.md~~ Done
+4. ~~Write references/COMPOSE_LAYOUTS.md~~ Done
+5. MATERIAL_DESIGN.md — replaced with INTEROP.md (no research source for M3)
+6. ~~Write references/PROFILING_TOOLS.md~~ Done (with citations)
+7. ~~Write references/LESSONS_LEARNED.md~~ Done (empty template)
+8. ~~Write references/CHANGELOG.md~~ Done (initial entry)
+9. ~~Run just sync~~ Done (27 skills indexed)
+10. ~~Run just check~~ Done (pip-audit CVE is pre-existing, unrelated)
+11. ~~Commit and push~~ Done (6896d65)
+
+**Remaining (optional future work):**
+- Add MATERIAL_DESIGN.md when M3 research is sourced
+- Populate LESSONS_LEARNED.md from real-world usage
