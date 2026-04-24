@@ -7,6 +7,7 @@ created: 2026-04-24
 updated: 2026-04-24
 ---
 
+
 # Handover: Android Layouts Best Practices Skill Authoring
 
 **Date**: 2026-04-24
@@ -15,7 +16,7 @@ updated: 2026-04-24
 
 ## Summary
 
-Researched Android layout best practices from 9 Android developer documentation pages. Designed a self-learning skill covering XML/View layouts, Jetpack Compose layouts, Material Design 3, and profiling tools. Research phase complete — skill files not yet written (directory creation blocked by session limits).
+Researched Android layout best practices from 9 Android developer documentation pages. Skill written and pushed (commit 6896d65). Covers XML/View layouts, Compose layout phases, View↔Compose interop, adaptive layouts, and profiling tools. MATERIAL_DESIGN.md was replaced with INTEROP.md (no research source for M3; interop is layout-critical). Deduplicated against android-compose-ui skill. All quality gates pass.
 
 ## Research Completed
 
