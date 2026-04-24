@@ -10,6 +10,7 @@ updated: 2026-04-24
 
 
 
+
 # Handover: Android Layouts Best Practices Skill Authoring
 
 **Date**: 2026-04-24
@@ -116,6 +117,10 @@ metadata:
 - Adaptive layouts (WindowSizeClass, foldables) were added as a gap fix — not in original research
 - ViewStub, View-to-Compose interop, and migration strategy were added as gap fixes
 - Compose stability/recomposition content deduplicated to android-compose-ui skill
+
+
+
+- GAP FILL v1.1.0: Added modifier order, WindowInsets (Compose+XML), content padding in lazy layouts, CoordinatorLayout/collapsing toolbar, ViewPager2/HorizontalPager, M3 layout components (Scaffold, TopAppBar, NavigationBar/Rail, drawers). All content evidence-based citing official Android docs. MATERIAL_DESIGN.md created. SKILL.md 312 lines. All quality gates pass.
 
 ## Next Steps
 
