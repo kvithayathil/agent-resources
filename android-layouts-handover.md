@@ -9,6 +9,7 @@ updated: 2026-04-24
 
 
 
+
 # Handover: Android Layouts Best Practices Skill Authoring
 
 **Date**: 2026-04-24
@@ -108,6 +109,13 @@ metadata:
 - Android .md.txt URLs sometimes redirect — check response size > 0
 - AgentSkills spec: no `sources` in frontmatter
 - The existing android-compose-ui skill already covers some Compose topics — android-layouts should focus on layout-specific perf and not duplicate
+
+
+
+- MATERIAL_DESIGN.md was replaced with INTEROP.md — no research source was available for M3 content
+- Adaptive layouts (WindowSizeClass, foldables) were added as a gap fix — not in original research
+- ViewStub, View-to-Compose interop, and migration strategy were added as gap fixes
+- Compose stability/recomposition content deduplicated to android-compose-ui skill
 
 ## Next Steps
 
