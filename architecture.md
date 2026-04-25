@@ -4,8 +4,9 @@ tags: ["architecture", "conventions", "skills", "tooling"]
 sources: []
 contributors: ["Jm2A"]
 created: 2026-04-18
-updated: 2026-04-18
+updated: 2026-04-25
 ---
+
 
 This project is a Python-based skill management system for AI coding agents following the AgentSkills spec.
 
@@ -17,13 +18,14 @@ This project is a Python-based skill management system for AI coding agents foll
 - \`just upstream-check\` — check VDD/VSDD gists for updates
 
 ## Skill Categories
+
 | Category | Examples | Notes |
 |----------|----------|-------|
 | Authored (self-learning) | vdd, vsdd, security | Agent may modify references/ |
 | Authored (tooling) | provenance-tracking, security-scan | Maintains skill lifecycle |
 | Remote (modified) | vdd, vsdd | Adapt upstream gists, check for updates |
 | Remote (unmodified) | qa, write-a-prd, grill-me | Installed from mattpocock/skills etc. |
-| Android family | android/* | KMP patterns, 8 sub-skills |
+| Android family | android/* | KMP patterns, 9 sub-skills (incl. android-layouts) |
 
 ## Provider System
 - Default: npx-skills (wraps npx skills add/update/check)
