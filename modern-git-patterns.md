@@ -4,8 +4,9 @@ tags: ["git", "patterns", "research", "commands", "handover", "session"]
 sources: []
 contributors: ["Jm2A"]
 created: 2026-04-21
-updated: 2026-04-21
+updated: 2026-04-25
 ---
+
 
 # Handover: Modern Git Patterns Skill Authoring
 
@@ -32,15 +33,7 @@ Researched modern git patterns from 6 expert talks, 5 release notes, and GitHub 
 
 ## Research Artifacts
 
-| File | Location | Source |
-|------|----------|--------|
-| video1.en.srt | `.agent-workspace/git-research/` | Edward Thomson — NDC London 2025 |
-| video2.en.srt | `.agent-workspace/git-research/` | "you only need 15ish git commands" |
-| video3.en.srt | `.agent-workspace/git-research/` | "10 Little-Known Features You'll Love" |
-| video4.en.srt | `.agent-workspace/git-research/` | "So You Think You Know Git Part 2" — DevWorld 2024 |
-| video5.en.srt | `.agent-workspace/git-research/` | Scott Chacon — FOSDEM 2024 |
-| video6.en.srt | `.agent-workspace/git-research/` | "Why everyone hates git submodules" |
-| video*-unique.txt | `.agent-workspace/git-research/` | Deduplicated text extracts |
+Research artifacts () were transient session files. Deleted after skill creation. References preserved in SOURCES.md within the skill.
 
 ## Sources Consulted
 
