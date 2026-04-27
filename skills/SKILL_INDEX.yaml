@@ -121,6 +121,36 @@ skills:
     source_type: gh-api
     provider: manual
     installed_at: '2026-04-16'
+- name: design-md
+  description: 'Create, consume, and validate DESIGN.md files — the open format for describing visual identity to coding agents. DESIGN.md combines YAML design tokens (colors, typography, spacing, components)
+    with Markdown design rationale. Triggers on: DESIGN.md, design system, design tokens, visual identity, brand tokens, UI styling, theme generation, color palette, typography tokens, WCAG contrast, design-token
+    lint, style regression, component tokens, spacing scale, rounded corners.
+
+    '
+  path: design-md
+  tags:
+  - design
+  - design-system
+  - design-tokens
+  - ui
+  - styling
+  - agent-dx
+  license: Apache-2.0
+  metadata:
+    author: kvithayathil
+    version: 1.0.0
+    living: 'true'
+    self-learning: 'true'
+    self-updating: 'true'
+    update-policy: periodic-remote-check+evolve-on-evidence
+    last-reviewed: '2026-04-27'
+    spec-version: alpha
+  version: 1.0.0
+  token_estimate: 1616
+  source:
+    repo: https://github.com/google-labs-code/design.md
+    ref: main
+    path: docs/spec.md
 - name: github-triage
   description: Triage GitHub issues through a label-based state machine with interactive grilling sessions. Use when user wants to triage issues, review incoming bugs or feature requests, prepare issues
     for an AFK agent, or manage issue workflow.
@@ -227,7 +257,7 @@ skills:
     min-git-version: 2.50.0
     verified-git-version: 2.54.0
   version: 1.0.0
-  token_estimate: 3723
+  token_estimate: 4202
 - name: prd-to-issues
   description: Break a PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when user wants to convert a PRD to issues, create implementation tickets, or break down a
     PRD into work items.
@@ -586,6 +616,8 @@ skills:
     provider: manual
     installed_at: '2026-04-16'
 tag_index:
+  agent-dx:
+  - design-md
   android:
   - android-layouts
   api:
@@ -608,11 +640,16 @@ tag_index:
   - security-scan
   design:
   - design-an-interface
+  - design-md
   - grill-me
   - improve-codebase-architecture
   - write-a-prd
   design-review:
   - vsdd
+  design-system:
+  - design-md
+  design-tokens:
+  - design-md
   development:
   - vdd
   devops:
@@ -682,6 +719,8 @@ tag_index:
   - provenance-tracking
   skill-review:
   - skill-vetter
+  styling:
+  - design-md
   system-design:
   - vsdd
   testing:
@@ -692,6 +731,8 @@ tag_index:
   tooling:
   - provenance-tracking
   - setup-pre-commit
+  ui:
+  - design-md
   verification:
   - vdd
   - vsdd
