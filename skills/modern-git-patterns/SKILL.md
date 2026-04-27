@@ -406,6 +406,22 @@ git worktree list
 git worktree remove ../feature-branch        # clean up when done
 ```
 
+### Bare Repo + Worktree Gotchas
+
+When using a bare repo as shared root with worktrees, two pitfalls require manual fixes:
+
+1. **Worktrees inherit `core.bare=true`** — every git operation fails until you set
+   `git config --worktree core.bare false` per worktree. Requires `extensions.worktreeconfig=true`.
+   ([git-worktree CONFIGURATION FILE](https://git-scm.com/docs/git-worktree#_configuration_file),
+   [git-config extensions.worktreeConfig](https://git-scm.com/docs/git-config#Documentation/git-config.txt-extensionseasierworktreeConfig))
+
+2. **Config-based hooks run from `$GIT_DIR`** (bare repo, no working tree) — path-relative
+   commands fail. Use `pre-commit` framework for project hooks instead.
+   ([githooks(5)](https://git-scm.com/docs/githooks#_description),
+   [DETAILED_PATTERNS — Bare Repo + Worktree Architecture](references/DETAILED_PATTERNS.md))
+
+See [references/DETAILED_PATTERNS.md](references/DETAILED_PATTERNS.md) for full setup walkthrough.
+
 ## Stash Patterns
 
 ```bash
@@ -478,6 +494,10 @@ Default branch → `main`, reftable default, SHA-256 default, symlink symrefs re
   the overloaded `git checkout`.
 - Expired GPG keys still produce valid signatures. Git 2.54 correctly shows these as good, not invalid.
 - `git log -L` now works with `-S` and `-G` (pickaxe) as of 2.54. Before that, these options were silently ignored.
+- Worktrees created from bare repos inherit `core.bare=true` — must manually set `core.bare false` per worktree. ([git-worktree docs](https://git-scm.com/docs/git-worktree#_configuration_file))
+- Config-based hooks [2.54+] run from `$GIT_DIR` in bare repos, not the worktree root. Path-relative commands fail. Use `pre-commit` framework for project hooks. ([githooks docs](https://git-scm.com/docs/githooks#_description))
+- `git clone --bare` doesn't create `remote.origin.fetch` refspec. Run `git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"` after clone. ([git-clone --bare docs](https://git-scm.com/docs/git-clone#Documentation/git-clone.txt---bare))
+- `git check-ignore` skips files in the index (staged). Use `--no-index` for pre-commit hooks that validate staged files. Also avoids symlink resolution errors in worktrees. ([git-check-ignore docs](https://git-scm.com/docs/git-check-ignore#_description))
 
 ## References
 

@@ -44,6 +44,80 @@ git worktree remove ../feature-branch
 
 Best practice: Short-lived workspaces at the same level as main repo.
 
+### Bare Repo + Worktree Architecture
+
+Using a bare repo as the shared root with worktrees for each branch. Enables
+shared config, hooks, and tooling across all branches.
+
+```bash
+# Create bare repo
+git clone --bare <url> myproject
+cd myproject
+
+# Fix fetch refspecs (bare clone drops these)
+# See: https://git-scm.com/docs/git-clone#Documentation/git-clone.txt---bare
+git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+git fetch origin
+
+# Enable per-worktree config
+# See: https://git-scm.com/docs/git-config#Documentation/git-config.txt-extensionseasierworktreeConfig
+git config extensions.worktreeconfig true
+
+# Add worktrees
+git worktree add main main
+git worktree add badges -b badges origin/badges
+
+# CRITICAL: Fix core.bare per worktree (git doesn't do this automatically)
+# See: https://git-scm.com/docs/git-worktree#_configuration_file
+cd main
+GIT_DIR="../worktrees/main" GIT_WORK_TREE="." git config --worktree core.bare false
+```
+
+#### Known Gotchas
+
+1. **Worktrees inherit `core.bare=true`** — `git worktree add` from a bare repo
+   doesn't set `core.bare=false` in the worktree config. Every git operation fails
+   with "fatal: this operation must be run in a work tree" until manually fixed.
+   Per [git-worktree CONFIGURATION FILE](https://git-scm.com/docs/git-worktree#_configuration_file):
+   *"If the config variables core.bare or core.worktree are present in the common
+   config file... they will be applied to the main worktree only"* — but when the
+   common config has `core.bare=true`, linked worktrees still inherit it.
+
+2. **Config-based hooks fail** — Git 2.54+ config-based hooks execute from the bare
+   repo common directory (no working tree). Per [githooks(5)](https://git-scm.com/docs/githooks#_description):
+   *"Before Git invokes a hook, it changes its working directory to either $GIT_DIR
+   in a bare repository or the root of the working tree in a non-bare repository."*
+   Path-relative commands like `cd backend && ruff check` fail. Use pre-commit
+   framework instead (it correctly resolves the worktree working directory).
+
+3. **`git clone --bare` drops fetch refspecs** — Per [git-clone --bare](https://git-scm.com/docs/git-clone#Documentation/git-clone.txt---bare):
+   *"neither remote-tracking branches nor the related configuration variables are
+   created."* After bare clone, `git fetch` creates no remote tracking branches until
+   refspec is manually added: `git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"`.
+
+4. **`git check-ignore` skips staged files** — Per [git-check-ignore DESCRIPTION](https://git-scm.com/docs/git-check-ignore#_description):
+   *"By default, tracked files are not shown at all since they are not subject to
+   exclude rules."* Use `--no-index` flag for pre-commit hooks that check staged files.
+   Also avoids symlink resolution errors for symlinked directories in worktrees.
+
+#### Shared Directory Pattern
+
+Bare repo root holds shared resources; worktrees symlink to them:
+
+```bash
+VC="$HOME/myproject"  # bare repo root
+WTDIR="$VC/main"      # worktree
+
+# Share agent config, MCP, etc.
+ln -snf ../.agents "$WTDIR/.agents"
+ln -snf ../.mcp.json "$WTDIR/.mcp.json"
+ln -snf ../.crosslink "$WTDIR/.crosslink"
+
+# Hooks: pre-commit framework in bare repo hooks/ is shared by all worktrees
+# Just run 'pre-commit install' from each worktree
+cd "$WTDIR" && pre-commit install
+```
+
 ## Stash Patterns
 
 ```bash
@@ -246,6 +320,12 @@ Recommended hybrid:
 1. `pre-commit` for team-shared, version-pinned hooks (committed YAML).
 2. git config hooks for personal/global tooling (in `~/.gitconfig`).
 3. Both run without conflict on every commit.
+
+**Caveat for bare+worktree repos**: Config-based hooks execute from `$GIT_DIR` (the bare
+repo directory, no working tree). Path-relative commands like `cd backend && ruff check` fail.
+Per [githooks(5)](https://git-scm.com/docs/githooks#_description): hooks CWD is `$GIT_DIR` in
+bare repos. Use `pre-commit` framework for project hooks in bare+worktree setups — it correctly
+resolves the worktree's working directory.
 
 ### Sources
 
