@@ -128,9 +128,7 @@ class TestValidation:
     def test_name_dir_mismatch_fails(self, patched_skills_dir: Path):
         bad = patched_skills_dir / "wrong-name"
         bad.mkdir()
-        (bad / "SKILL.md").write_text(
-            "---\nname: different-name\ndescription: test\n---\nbody", encoding="utf-8"
-        )
+        (bad / "SKILL.md").write_text("---\nname: different-name\ndescription: test\n---\nbody", encoding="utf-8")
         errors = sync_index.validate_skill(bad)
         assert any("must match" in e for e in errors)
 
@@ -144,9 +142,7 @@ class TestValidation:
     def test_empty_body_warns(self, patched_skills_dir: Path):
         bad = patched_skills_dir / "empty-body"
         bad.mkdir()
-        (bad / "SKILL.md").write_text(
-            "---\nname: empty-body\ndescription: test\n---\n", encoding="utf-8"
-        )
+        (bad / "SKILL.md").write_text("---\nname: empty-body\ndescription: test\n---\n", encoding="utf-8")
         errors = sync_index.validate_skill(bad)
         assert any("empty" in e.lower() for e in errors)
 
@@ -163,18 +159,14 @@ class TestValidation:
     def test_uppercase_name_fails(self, patched_skills_dir: Path):
         bad = patched_skills_dir / "UPPER"
         bad.mkdir()
-        (bad / "SKILL.md").write_text(
-            "---\nname: UPPER\ndescription: test\n---\nbody", encoding="utf-8"
-        )
+        (bad / "SKILL.md").write_text("---\nname: UPPER\ndescription: test\n---\nbody", encoding="utf-8")
         errors = sync_index.validate_skill(bad)
         assert any("lowercase" in e.lower() for e in errors)
 
     def test_double_hyphen_name_fails(self, patched_skills_dir: Path):
         bad = patched_skills_dir / "bad--name"
         bad.mkdir()
-        (bad / "SKILL.md").write_text(
-            "---\nname: bad--name\ndescription: test\n---\nbody", encoding="utf-8"
-        )
+        (bad / "SKILL.md").write_text("---\nname: bad--name\ndescription: test\n---\nbody", encoding="utf-8")
         errors = sync_index.validate_skill(bad)
         assert any("consecutive" in e.lower() for e in errors)
 

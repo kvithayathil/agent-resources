@@ -25,11 +25,9 @@ metadata:
   min-git-version: "2.50.0"
   verified-git-version: "2.54.0"
 ---
-
 # Modern Git Patterns, Commands & Approaches
 
-Version-aware git guidance grounded in evidence from git 2.50–2.54 release notes,
-expert talks, and real-world practice.
+Version-aware git guidance grounded in git 2.50–2.54 release notes, expert talks, and real-world practice.
 
 ## Version Detection
 
@@ -41,7 +39,6 @@ git --version
 
 If version < 2.50, note that many patterns below are unavailable or behave differently.
 Feature availability annotations use `[2.XX+]` to indicate minimum git version.
-
 ## Section Index
 
 | Section | Focus |
@@ -64,7 +61,6 @@ Feature availability annotations use `[2.XX+]` to indicate minimum git version.
 | [Deprecation Warnings (Git 3.0)](#deprecation-warnings-git-30) | upcoming breaking changes |
 
 ---
-
 ## History Rewriting
 
 ### `git history` (experimental) [2.54+]
@@ -184,7 +180,6 @@ What it does (hourly):
 - Commit graph generation
 - Loose object collection
 - Prefetching remote refs
-
 What it does (daily):
 - More aggressive repacking
 
@@ -200,7 +195,6 @@ git commit-graph write --reachable --changed-paths
 # Enabled by default in maintenance [2.52+]
 # commitGraph.changedPaths config [2.52+]
 ```
-
 ### `core.fsmonitor` [2.50+]
 
 Uses OS file system watcher instead of scanning every file. Critical for large repos.
@@ -466,7 +460,6 @@ Default branch → `main`, reftable default, SHA-256 default, symlink symrefs re
 `core.commentChar=auto` removed, `git whatchanged` removed.
 
 ---
-
 ## Common Mistakes
 
 | Mistake | Fix |
@@ -482,7 +475,6 @@ Default branch → `main`, reftable default, SHA-256 default, symlink symrefs re
 | Not signing commits | Use SSH signing (easier than GPG) [2.34+] |
 | Forgetting `git submodule update` | Set `submodule.recurse true` |
 | Running `git gc` manually | Use `git maintenance run` instead (geometric by default) |
-
 ## Gotchas
 
 - `git blame -C` is expensive on large repos but essential for accurate attribution of moved code.
@@ -490,8 +482,6 @@ Default branch → `main`, reftable default, SHA-256 default, symlink symrefs re
   to skip trees too, but some operations will require fetching missing data.
 - `git maintenance start` adds cron jobs. On macOS, this uses `launchd`. On Linux, `cron` or `systemd` timers.
 - Config-based hooks [2.54+] run in config file order. Traditional hook scripts run last.
-- `git switch` and `git restore` were declared no longer experimental in 2.51. Prefer them over
-  the overloaded `git checkout`.
 - Expired GPG keys still produce valid signatures. Git 2.54 correctly shows these as good, not invalid.
 - `git log -L` now works with `-S` and `-G` (pickaxe) as of 2.54. Before that, these options were silently ignored.
 - Worktrees created from bare repos inherit `core.bare=true` — must manually set `core.bare false` per worktree. ([git-worktree docs](https://git-scm.com/docs/git-worktree#_configuration_file))
