@@ -146,7 +146,7 @@ skills:
     last-reviewed: '2026-04-27'
     spec-version: alpha
   version: 1.0.0
-  token_estimate: 1616
+  token_estimate: 1696
   source:
     repo: https://github.com/google-labs-code/design.md
     ref: main
@@ -257,7 +257,7 @@ skills:
     min-git-version: 2.50.0
     verified-git-version: 2.54.0
   version: 1.0.0
-  token_estimate: 4202
+  token_estimate: 4168
 - name: prd-to-issues
   description: Break a PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. Use when user wants to convert a PRD to issues, create implementation tickets, or break down a
     PRD into work items.
@@ -615,9 +615,46 @@ skills:
     source_type: gh-api
     provider: manual
     installed_at: '2026-04-16'
+- name: writing-agent-hooks
+  description: 'Guide for writing agent hooks across OpenCode, VS Code:, Polytoken, and Claude. Use when creating, reviewing, or refactoring hooks; choosing a platform; setting up a cross-platform hook;
+    or when the user mentions agent hooks, hook scripts, PreToolUse, PostToolUse, .github/hooks, .claude/settings.json, .polytoken/hooks.json, or OpenCode plugins.
+
+    '
+  path: writing-agent-hooks
+  triggers:
+  - agent hook
+  - hook script
+  - write a hook
+  - PreToolUse
+  - PostToolUse
+  - .github/hooks
+  - .claude/settings.json
+  - .polytoken/hooks.json
+  - opencode plugin
+  - agent customization
+  - hook security
+  tags:
+  - agent-hooks
+  - hooks
+  - security
+  - cross-platform
+  - customization
+  license: Apache-2.0
+  metadata:
+    author: agent-resources
+    version: 0.1.0
+    living: 'true'
+    self-learning: 'true'
+    self-updating: 'true'
+    update-policy: periodic-remote-check
+    last-reviewed: '2026-07-25'
+  version: 0.1.0
+  token_estimate: 1021
 tag_index:
   agent-dx:
   - design-md
+  agent-hooks:
+  - writing-agent-hooks
   android:
   - android-layouts
   api:
@@ -632,8 +669,12 @@ tag_index:
   - android-layouts
   correctness:
   - vdd
+  cross-platform:
+  - writing-agent-hooks
   cryptography:
   - security
+  customization:
+  - writing-agent-hooks
   ddd:
   - ubiquitous-language
   dependencies:
@@ -666,6 +707,8 @@ tag_index:
   - prd-to-issues
   - qa
   - request-refactor-plan
+  hooks:
+  - writing-agent-hooks
   iac:
   - security-scan
   interview:
@@ -713,6 +756,7 @@ tag_index:
   - security-best-practices
   - security-scan
   - skill-vetter
+  - writing-agent-hooks
   setup:
   - setup-pre-commit
   skill-management:
