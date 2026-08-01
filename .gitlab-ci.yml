@@ -6,7 +6,7 @@ cache:
     - .uv-cache
 
 .linux:
-  image: python:3.12-slim
+  image: python:3.14-slim
   before_script:
     - pip install uv
     - uv --version
