@@ -61,6 +61,11 @@ dupes-jscpd:
 audit:
     cd "{{fixdir}}/skills/scripts" && uv run pip-audit
 
+# Security sweep: pip-audit blind spots (CI actions, global jscpd, bundled node)
+# against OSV advisories from the last 30 days — monthly cadence
+sweep:
+    bash "{{fixdir}}/scripts/security-sweep.sh"
+
 # Run tests
 test:
     cd "{{fixdir}}/skills/scripts" && uv run pytest

@@ -52,6 +52,11 @@ skills/
 └── <skill-name>/             # Installed or authored skills
 ```
 
+```
+scripts/
+└── security-sweep.sh         # Monthly security sweep (just sweep)
+```
+
 ## Adding a Skill
 
 ```bash
