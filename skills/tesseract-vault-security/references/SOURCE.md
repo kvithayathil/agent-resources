@@ -4,7 +4,7 @@
 - **Ref**: main
 - **Path**: SECURITY.md
 - **Installed**: 2026-04-14
-- **Last Checked**: 2026-04-18
+- **Last Checked**: 2026-10-22
 - **Provider**: manual
 - **Lock Entry**: Recorded in `skills/skills-lock.json`
 

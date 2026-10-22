@@ -515,6 +515,23 @@ skills:
     source_type: npx-skills
     provider: npx-skills
     installed_at: '2026-04-14'
+- name: tesseract-vault-security
+  description: 'Tesseract Vault security policy and secure-design reference. Covers vulnerability reporting (report only via private email dollspacegay@gmail.com, never public GitHub issues, coordinated
+    disclosure with 48h initial response, 7d status update, and 90d resolution targets), supported versions (1.x only), and defense-in-depth architecture principles: AES-256-GCM authenticated encryption,
+    Argon2id key derivation, ML-KEM-1024 post-quantum hybrid KEM, locked/guarded memory pages with scrubbing, and optional TPM 2.0 / YubiKey 2FA, alongside least privilege, fail-safe defaults, complete
+    mediation, and an explicit threat model. Use when reviewing Tesseract Vault''s security posture, reporting a vulnerability to the project, or applying its secure design principles as a reference model
+    for cryptographic/memory-safe software.'
+  path: tesseract-vault-security
+  tags:
+  - security
+  - reference
+  token_estimate: 1058
+  source:
+    source: https://github.com/dollspace-gay/Tesseract-Vault
+    ref: main
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-04-14'
 - name: ubiquitous-language
   description: Extract a DDD-style ubiquitous language glossary from the current conversation, flagging ambiguities and proposing canonical terms. Saves to UBIQUITOUS_LANGUAGE.md. Use when user wants to
     define domain terms, build a glossary, harden terminology, create a ubiquitous language, or mentions "domain model" or "DDD".
@@ -743,6 +760,8 @@ tag_index:
   refactoring:
   - improve-codebase-architecture
   - request-refactor-plan
+  reference:
+  - tesseract-vault-security
   sast:
   - security-scan
   scanning:
@@ -756,6 +775,7 @@ tag_index:
   - security-best-practices
   - security-scan
   - skill-vetter
+  - tesseract-vault-security
   - writing-agent-hooks
   setup:
   - setup-pre-commit
