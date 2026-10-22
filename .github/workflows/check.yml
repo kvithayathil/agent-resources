@@ -7,6 +7,22 @@ on:
     branches: [main]
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            skills:
+              - 'skills/**'
+    outputs:
+      skills: ${{ steps.filter.outputs.skills }}
+
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -98,3 +114,60 @@ jobs:
         working-directory: skills/scripts
       - run: uv run bandit -r sync-index.py -ll
         working-directory: skills/scripts
+
+  # AST09 skill scanning (SkillSpector, report-only). Gating threshold intentionally
+  # deferred: a blocking threshold on risk score will be set after triaging the first
+  # real scan results from this report-only phase. Until then findings are informative
+  # only — SARIF exits 1 when any skill scores >50, which must not fail the workflow.
+  skill-scan:
+    needs: changes
+    if: needs.changes.outputs.skills == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.1
+      - name: Install SkillSpector (pinned to tag v2.12.0; tags are mutable upstream — SHA pinning deferred as a repo policy decision)
+        run: uv tool install --python 3.12 "git+https://github.com/NVIDIA/skillspector.git@v2.12.0"
+      - name: Scan skills
+        # Non-blocking: exit 1 is expected when risk score >50 (report-only phase)
+        # --recursive only treats immediate children of a root as skills, so each
+        # skill-group directory (e.g. skills/android/<name>/SKILL.md, no SKILL.md in
+        # the group dir itself) needs its own scan root. Dotted dirs (.templates) are
+        # excluded by the glob.
+        run: |
+          mkdir -p skillspector-sarif
+          scan_failures=0
+          scan() { skillspector scan "$1" --recursive --no-llm --format sarif --output "skillspector-sarif/$2.sarif" || { echo "WARN: SkillSpector scan of '$1' failed (exit $?); no SARIF produced for it"; scan_failures=$((scan_failures+1)); }; }
+          scan ./skills skills
+          for group in ./skills/*/; do
+            if [ ! -f "$group/SKILL.md" ] && ls "$group"*/SKILL.md >/dev/null 2>&1; then
+              scan "$group" "$(basename "$group")"
+            fi
+          done
+          if [ "$scan_failures" -gt 0 ]; then
+            echo "=== SkillSpector summary: $scan_failures scan(s) failed (non-blocking, report-only phase); SARIF is absent only for the failed targets ==="
+          else
+            echo "=== SkillSpector summary: all scans completed ==="
+          fi
+      - name: Check SARIF output
+        id: sarif_check
+        if: always()
+        run: |
+          if ls skillspector-sarif/*.sarif >/dev/null 2>&1; then
+            echo "upload=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No SARIF files produced (no SkillSpector scan succeeded); skipping upload."
+            echo "upload=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Upload SARIF
+        # Fork PRs provide a read-only token (security-events: write cannot be
+        # granted), so the upload may be rejected; it must never block the job.
+        if: always() && steps.sarif_check.outputs.upload != 'false'
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: skillspector-sarif
