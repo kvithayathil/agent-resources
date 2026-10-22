@@ -7,11 +7,6 @@ created: 2026-10-22
 updated: 2026-10-22
 ---
 
-
-
-
-
-
 2026-10-22 audit outcome and patterns (applies to skills/scripts + security_layer uv projects):
 
 1. cryptography>=50.0.0 override: presidio-anonymizer 2.2.364 declares cryptography>=48.0.1,<49.0.0, but PYSEC-2026-3552 (CBC PKCS7 padding oracle — exactly presidio AESCipher's surface) is only fixed in 50.0.0; 3553/3554 in 49.0.0; GHSA-537c-gmf6-5ccf in 48.0.1. Solution: [tool.uv] override-dependencies in security_layer/pyproject.toml with floor at the ACTUAL fix line (>=50.0.0), compat proven by tests/test_crypto_compat.py (presidio Encrypt->Decrypt round-trip). Gotcha: dropping the override line silently reverts resolution to the cap — always re-check 'uv lock --check' and grep the lock for the resolved version after editing.
@@ -30,4 +25,4 @@ updated: 2026-10-22
 
 8. SkillSpector evaluation (2026-10-22, evaluation outcome): NVIDIA SkillSpector v2.12.0 (pinned git tag, Apache-2.0, Alpha) trial-run in static mode (--no-llm, no API key) — APPROVED for report-only CI integration. Local trial scanned 30 skills (21 top-level + 9 android-group; .templates/ excluded); scores mostly LOW; 5 HIGH/CRITICAL (vdd 62, vsdd 75, modern-git-patterns 100, provenance-tracking 100, writing-agent-hooks 100) pending triage; ~998 SARIF results (80 error / 917 warning / 1 note). FP load tolerated for report-only (security-domain skills scored LOW/MEDIUM — no blanket flagging). Integration pattern: paths-filtered (skills/** via dorny/paths-filter) non-blocking skill-scan job in check.yml; scan loop over ./skills + each group dir because SkillSpector --recursive covers only immediate children (group layout skills/android/<name>/ needs per-group scans); per-root SARIF files uploaded as a directory via github/codeql-action/upload-sarif (directory input documented in its action.yml); scan steps continue-on-error because SkillSpector exits 1 when any risk score >50. AST09 blocking threshold deliberately deferred — decision comes from triaging the first real scan results (noted in the check.yml job comment). Also: the first sweep run's two stale-major action findings (paths-filter@v3, upload-sarif@v3) were remediated by bumping both to v4.
 
-Python 3.15 Renovate PRs (#8 closed, #14 recreated red 2026-10-22) — root cause: under CPython 3.15.0 the security_layer presidio→spaCy→en_core_web_lg NLP engine fails to load (test-security red); suppressed via a renovate.json package rule (matchPackageNames: ["python"], allowedVersions: ">=3.12,<3.15") with the removal condition in its description — delete the rule once spaCy/presidio support 3.15 and Renovate re-proposes. Same day: checkout v7 + setup-uv v10 PRs merged (CI green, Node-20 deprecation warnings cleared), superseding the stale 'open PRs' note earlier on this page.
+9. Python 3.15 Renovate PRs (#8 closed, #14 recreated red 2026-10-22) — root cause: under CPython 3.15.0 the security_layer presidio→spaCy→en_core_web_lg NLP engine fails to load (test-security red); suppressed via a renovate.json package rule (matchPackageNames: ["python"], allowedVersions: ">=3.12,<3.15") with the removal condition in its description — delete the rule once spaCy/presidio support 3.15 and Renovate re-proposes. Same day: checkout v7 + setup-uv v10 PRs merged (CI green, Node-20 deprecation warnings cleared), superseding the stale 'open PRs' note earlier on this page.
