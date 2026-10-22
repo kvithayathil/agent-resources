@@ -8,6 +8,7 @@ LOCK_FILE="$SKILLS_DIR/skills-lock.json"
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
 GREEN='\033[0;32m'
+BLUE='\033[0;34m'
 NC='\033[0m'
 
 usage() {
@@ -178,6 +179,18 @@ cmd_fresh() {
         source=$(jq -r --arg n "$name" '.skills[$n].source // ""' "$LOCK_FILE")
         ref=$(jq -r --arg n "$name" '.skills[$n].ref // "main"' "$LOCK_FILE")
 
+        local frozen frozen_at
+        frozen=$(jq -r --arg n "$name" '.skills[$n].frozen == true' "$LOCK_FILE")
+        if [[ "$frozen" == "true" ]]; then
+            frozen_at=$(jq -r --arg n "$name" '.skills[$n].frozen_at // "unknown"' "$LOCK_FILE")
+            local frozen_reason
+            frozen_reason=$(jq -r --arg n "$name" '.skills[$n].frozen_reason // ""' "$LOCK_FILE")
+            [[ -z "$frozen_reason" ]] && frozen_reason="upstream unreachable"
+            printf '  %bFROZEN%b %s — vendored local copy (frozen %s, %s)\n' \
+                "$BLUE" "$NC" "$name" "$frozen_at" "$frozen_reason"
+            continue
+        fi
+
         if [[ -z "$source" ]] || [[ "$source" != *"github.com"* ]]; then
             echo "  SKIP $name (not a GitHub source)"
             continue
@@ -217,7 +230,7 @@ cmd_report() {
         return 0
     fi
 
-    jq -r '.skills | to_entries[] | "\(.key): \(.value.source) (\(.value.ref)) [\(.value.provider)]"' "$LOCK_FILE"
+    jq -r '.skills | to_entries[] | "\(.key): \(.value.source) (\(.value.ref)) [\(.value.provider)]\(if .value.frozen == true then " [frozen]" else "" end)"' "$LOCK_FILE"
 }
 
 case "${1:-all}" in

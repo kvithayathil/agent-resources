@@ -12,7 +12,10 @@
       "ref": "main",
       "source_type": "npx-skills",
       "provider": "npx-skills",
-      "installed_at": "2026-04-14"
+      "installed_at": "2026-04-14",
+      "frozen": true,
+      "frozen_at": "2026-10-21",
+      "frozen_reason": "upstream repo unreachable (HTTP 404) since 2026-10-21; retained as vendored local copy"
     },
     "tesseract-vault-security": {
       "source": "https://github.com/dollspace-gay/Tesseract-Vault",
