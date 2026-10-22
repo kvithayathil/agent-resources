@@ -4,8 +4,9 @@ tags: ["provenance", "skills", "updates", "maintenance", "patterns"]
 sources: []
 contributors: ["Jm2A"]
 created: 2026-04-18
-updated: 2026-04-18
+updated: 2026-10-22
 ---
+
 
 ## Two Categories of Remote Skills
 
@@ -40,3 +41,5 @@ Verbatim copy from remote repo.
 - security-best-practices and skill-vetter used source-repo: in metadata instead of source: block
 - tesseract-vault-security has lock entry but no skill directory (orphaned)
 - Always quote ISO timestamps in YAML or fetched_at fails validation
+
+2026-10-22: Added FROZEN mechanism for skills with unreachable upstreams. Design: skills-lock.json entry gains frozen:true + frozen_at + frozen_reason; provenance-check.sh cmd_fresh skips gh API call and Last-Checked update for frozen entries (prints FROZEN + reason). Hardening lessons: (1) never echo -e lock-sourced strings — ANSI-escape spoofing possible; use printf with %s for untrusted fields, %b only for script-owned color vars. (2) jq '.skills[n].frozen // false' accepts string 'true' — use '== true' strict equality so fresh and report agree. Known limitation: lock_set (providers/common.sh) rebuilds lock entries wholesale, so any future provider reinstall of a frozen skill silently drops the frozen fields; freeze is enforced only in cmd_fresh, and SKILL_INDEX.yaml does not surface frozen state. First applied to security-best-practices (supercent-io/skills-template 404'd: repo deleted/private while org lives).
