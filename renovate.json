@@ -3,5 +3,12 @@
   "extends": [
     "config:recommended"
   ],
-  "osvVulnerabilityAlerts": true
+  "osvVulnerabilityAlerts": true,
+  "packageRules": [
+    {
+      "description": "Hold python below 3.15 until the security_layer spaCy/presidio stack supports it; remove this rule when they do.",
+      "matchPackageNames": ["python"],
+      "allowedVersions": ">=3.12,<3.15"
+    }
+  ]
 }
