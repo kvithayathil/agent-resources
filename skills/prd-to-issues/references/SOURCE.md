@@ -4,7 +4,7 @@
 - **Ref**: main
 - **Path**: prd-to-issues
 - **Installed**: 2026-04-16
-- **Last Checked**: 2026-04-18
+- **Last Checked**: 2026-10-22
 - **Provider**: manual
 - **Lock Entry**: Recorded in `skills/skills-lock.json`
 

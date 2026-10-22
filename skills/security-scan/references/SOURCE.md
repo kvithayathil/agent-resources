@@ -4,7 +4,7 @@
 - **Ref**: main
 - **Path**: root
 - **Installed**: 2026-04-17
-- **Last Checked**: 2026-04-17
+- **Last Checked**: 2026-10-22
 - **Provider**: manual
 - **Lock Entry**: Not in skills-lock.json (skill wraps external tool, not installed via provider)
 
