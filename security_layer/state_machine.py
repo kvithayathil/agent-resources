@@ -18,16 +18,12 @@ class InvalidTransition(Exception):
 class StateMachine[S: Enum, E: Enum, C]:
     transitions: dict[tuple[S, E], tuple[S, Action[C]]] = field(default_factory=dict)
 
-    def add_transition(
-        self, from_state: S, event: E, to_state: S, action: Action[C]
-    ) -> None:
+    def add_transition(self, from_state: S, event: E, to_state: S, action: Action[C]) -> None:
         self.transitions[(from_state, event)] = (to_state, action)
 
     def next_transition(self, state: S, event: E) -> tuple[S, Action[C]]:
         if (transition := self.transitions.get((state, event))) is None:
-            raise InvalidTransition(
-                f"Invalid transition from {state!r} on event {event!r}"
-            )
+            raise InvalidTransition(f"Invalid transition from {state!r} on event {event!r}")
         return transition
 
     def handle(self, context: C, state: S, event: E) -> S:
@@ -35,9 +31,7 @@ class StateMachine[S: Enum, E: Enum, C]:
         action(context)
         return next_state
 
-    def transition(
-        self, from_state: S | Iterable[S], event: E, to_state: S
-    ) -> Callable[[Action[C]], Action[C]]:
+    def transition(self, from_state: S | Iterable[S], event: E, to_state: S) -> Callable[[Action[C]], Action[C]]:
         if isinstance(from_state, Enum) or not isinstance(from_state, Iterable):
             from_state = (from_state,)
 

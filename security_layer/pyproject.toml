@@ -21,6 +21,16 @@ dev = [
 
 [tool.uv]
 required-version = ">=0.6"
+# presidio-anonymizer 2.2.364 declares `cryptography>=48.0.1,<49.0.0`, which
+# blocks resolving above the vulnerable lines: GHSA-537c-gmf6-5ccf is fixed in
+# 48.0.1, PYSEC-2026-3553/3554 in 49.0.0, and PYSEC-2026-3552 (CBC PKCS7
+# padding-oracle surface, which presidio's AESCipher exercises) in 50.0.0.
+# This override replaces presidio's range with cryptography>=50.0.0 so the
+# requirement encodes the actual fix line rather than the vulnerable interval.
+# Compat evidence: tests/test_crypto_compat.py round-trips presidio's
+# Encrypt -> Decrypt operators (AESCipher AES-CBC/PKCS7 from cryptography) on
+# the overridden version.
+override-dependencies = ["cryptography>=50.0.0"]
 
 [tool.ruff]
 target-version = "py312"
@@ -32,6 +42,9 @@ select = [
     "E", "W", "F", "I", "UP", "B", "SIM", "C4", "TCH", "RUF", "PERF", "PGH", "S",
 ]
 ignore = ["S603"]
+
+[tool.ruff.lint.per-file-ignores]
+"../tests/**" = ["S101"]  # pytest asserts are the standard test idiom
 
 [tool.ruff.format]
 quote-style = "double"
