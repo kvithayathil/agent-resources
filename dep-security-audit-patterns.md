@@ -7,14 +7,7 @@ created: 2026-10-22
 updated: 2026-10-22
 ---
 
----
-title: "Dependency Security Audit Patterns"
-tags: ["security", "dependencies", "uv"]
-sources: []
-contributors: ["Jm2A"]
-created: 2026-10-22
-updated: 2026-10-22
----
+
 
 
 
@@ -36,3 +29,5 @@ updated: 2026-10-22
 7. 2026-10-22 monthly security sweep ("just sweep", scripts/security-sweep.sh, exit semantics: 1 = findings, 2 = incomplete/failed checks (per-surface reason printed; the sweep is never reported clean when a required check failed), 0 = zero findings AND all surfaces complete (run date printed): audits the four pip-audit blind spots. (1) GitHub Actions used in the workflows — uses: refs are grepped at runtime (never hard-coded) and compared against each repo's latest release via gh api; any action >=1 major behind (e.g. dorny/paths-filter@v3 vs v4, codeql-action v3 vs v4 tag) is a triage finding; full-SHA pins get an explicit manual-verification entry, floating non-version refs are triage findings; Empirical probe 2026-10-22: OSV's schema defines a GitHub Actions ecosystem, but POST /v1/query returned 200 with an empty result for OZI-Project/publish@1.13.2 despite the published advisory GHSA-2487-9f55-2vg9, while unknown ecosystems return 400 (osv.dev's _ecosystems.py maps 'GitHub Actions': None) — the API limitation is not documented, so the fallback is probe-based; re-probe if OSV adds support, never trust an OSV query for that ecosystem yet. (2) Global jscpd (homebrew npm tool, outside every lockfile) — npm jscpd@<resolved-version> queried on OSV. (3) Node bundled via nodejs-wheel-binaries (hidden inside both uv.locks as a PyPI package) — version read from each lock via awk (uv.lock is TOML, jq chokes) and checked against PyPI ecosystem. (4) pip-audit re-run: skills/scripts via just audit (reuse, justfile is source of truth); security_layer has NO pip-audit in its lock and CI never audits it, so sweep exports the locked deps (uv export --frozen --hashes, hashes required because pip-audit --disable-pip) and runs uvx pip-audit -r. Registering a new surface: add a check_* function + surface-list entry in scripts/security-sweep.sh, then update this page. OSV query payload used: POST /v1/query {package:{name,ecosystem},version} (batch: /v1/querybatch {queries:[...]}); recency filtered client-side on published — 30-day window.
 
 8. SkillSpector evaluation (2026-10-22, evaluation outcome): NVIDIA SkillSpector v2.12.0 (pinned git tag, Apache-2.0, Alpha) trial-run in static mode (--no-llm, no API key) — APPROVED for report-only CI integration. Local trial scanned 30 skills (21 top-level + 9 android-group; .templates/ excluded); scores mostly LOW; 5 HIGH/CRITICAL (vdd 62, vsdd 75, modern-git-patterns 100, provenance-tracking 100, writing-agent-hooks 100) pending triage; ~998 SARIF results (80 error / 917 warning / 1 note). FP load tolerated for report-only (security-domain skills scored LOW/MEDIUM — no blanket flagging). Integration pattern: paths-filtered (skills/** via dorny/paths-filter) non-blocking skill-scan job in check.yml; scan loop over ./skills + each group dir because SkillSpector --recursive covers only immediate children (group layout skills/android/<name>/ needs per-group scans); per-root SARIF files uploaded as a directory via github/codeql-action/upload-sarif (directory input documented in its action.yml); scan steps continue-on-error because SkillSpector exits 1 when any risk score >50. AST09 blocking threshold deliberately deferred — decision comes from triaging the first real scan results (noted in the check.yml job comment). Also: the first sweep run's two stale-major action findings (paths-filter@v3, upload-sarif@v3) were remediated by bumping both to v4.
+
+Python 3.15 Renovate PRs (#8 closed, #14 recreated red 2026-10-22) — root cause: under CPython 3.15.0 the security_layer presidio→spaCy→en_core_web_lg NLP engine fails to load (test-security red); suppressed via a renovate.json package rule (matchPackageNames: ["python"], allowedVersions: ">=3.12,<3.15") with the removal condition in its description — delete the rule once spaCy/presidio support 3.15 and Renovate re-proposes. Same day: checkout v7 + setup-uv v10 PRs merged (CI green, Node-20 deprecation warnings cleared), superseding the stale 'open PRs' note earlier on this page.
