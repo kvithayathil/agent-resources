@@ -7,6 +7,7 @@ created: 2026-10-22
 updated: 2026-10-22
 ---
 
+
 2026-10-22 audit outcome and patterns (applies to skills/scripts + security_layer uv projects):
 
 1. cryptography>=50.0.0 override: presidio-anonymizer 2.2.364 declares cryptography>=48.0.1,<49.0.0, but PYSEC-2026-3552 (CBC PKCS7 padding oracle — exactly presidio AESCipher's surface) is only fixed in 50.0.0; 3553/3554 in 49.0.0; GHSA-537c-gmf6-5ccf in 48.0.1. Solution: [tool.uv] override-dependencies in security_layer/pyproject.toml with floor at the ACTUAL fix line (>=50.0.0), compat proven by tests/test_crypto_compat.py (presidio Encrypt->Decrypt round-trip). Gotcha: dropping the override line silently reverts resolution to the cap — always re-check 'uv lock --check' and grep the lock for the resolved version after editing.
@@ -18,3 +19,5 @@ updated: 2026-10-22
 4. CI reality: remote is GitHub-only; .gitlab-ci.yml is dormant (no GitLab remote). GitHub Actions check.yml runs lint/typecheck/test; advisories cleared 2026-10-22 via full uv lock --upgrade in both projects (27 advisories). Renovate (config:recommended) is ACTIVE and opens PRs; as of 2026-10-22 open: actions/checkout v7 + astral-sh/setup-uv v10 (both green, fix Node-20-deprecation warnings), renovate/python-3.x rebasing.
 
 5. Provenance freshness: GitHub API 404 for a dead repo returns {'message':'Not Found'} — provenance-check.sh previously stringified the blob and printed a false CURRENT. Any new API-dependent check must treat fetch failure as UNKNOWN, never CURRENT.
+
+6. OWASP skill-scanner integration (reference recorded 2026-10-22, evaluation task pending in openspec change ci-warnings-cve-sweep): Guide https://owasp.github.io/www-project-agentic-skills-top-10/skill-scanner-integration recommends NVIDIA SkillSpector (github.com/NVIDIA/SkillSpector, Apache-2.0, 20.8k stars, active) for CI skill scanning: static mode --no-llm (no API key), 0-100 risk score, SARIF v2.1.0 output uploadable via codeql-action/upload-sarif@v3 to GitHub code scanning; maps AST01-04/08-10; AST09 risk score is the natural gate threshold. OWASP's own @owasp/ast10-scanner package is NOT published — map findings to the AST taxonomy manually. Best practice: non-blocking scans first; SARIF artifacts[] sha-256 hashes are the join key for multi-scanner report composition (layer-tagged findings). Applies here because skills/ contains 30 skills, several from remote installs with provenance records.
