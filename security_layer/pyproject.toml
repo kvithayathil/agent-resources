@@ -2,7 +2,7 @@
 name = "security-layer"
 version = "0.1.0"
 description = "LLM agent security mitigation layer — trifecta separation, PII detection, input classification, output validation, least privilege, rate limiting, HITL, incident response"
-requires-python = ">=3.12, <3.14"
+requires-python = ">=3.14, <3.15"
 license = "AGPL-3.0-only"
 dependencies = [
     "presidio-analyzer>=2.2",
