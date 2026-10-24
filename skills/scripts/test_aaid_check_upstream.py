@@ -79,39 +79,39 @@ def _make_fake_gh(bin_dir: Path, fixture_upstream: Path) -> None:
         "\n"
         'pin = os.environ["AAID_FAKE_PIN"]\n'
         'root = os.environ["AAID_FAKE_ROOT"]\n'
-        "overrides = json.loads(os.environ.get(\"AAID_FAKE_TIP_OVERRIDES\", \"{}\"))\n"
-        "pin_overrides = json.loads(os.environ.get(\"AAID_FAKE_PIN_OVERRIDES\", \"{}\"))\n"
+        'overrides = json.loads(os.environ.get("AAID_FAKE_TIP_OVERRIDES", "{}"))\n'
+        'pin_overrides = json.loads(os.environ.get("AAID_FAKE_PIN_OVERRIDES", "{}"))\n'
         "args = sys.argv[1:]\n"
         "\n"
         'if any("repos/example/ex/commits/main" in a for a in args):\n'
         '    print(json.dumps({"sha": os.environ.get("AAID_FAKE_TIP_SHA", pin), "commit": {"committer": {"date": "2026-01-01T00:00:00Z"}}}))\n'
         "    sys.exit(0)\n"
         "\n"
-        'path = None\n'
-        'ref = None\n'
-        'for a in args:\n'
+        "path = None\n"
+        "ref = None\n"
+        "for a in args:\n"
         '    if "repos/example/ex/contents/" in a:\n'
         '        path = a.split("repos/example/ex/contents/", 1)[1]\n'
         '    elif a.startswith("ref="):\n'
-        '        ref = a[4:]\n'
-        'if path is None:\n'
+        "        ref = a[4:]\n"
+        "if path is None:\n"
         "    sys.exit(1)\n"
-        'try:\n'
-        '    if ref == pin:\n'
+        "try:\n"
+        "    if ref == pin:\n"
         '        data = base64.b64decode(pin_overrides[path]) if path in pin_overrides else open(os.path.join(root, path), "rb").read()\n'
-        '    elif path in overrides:\n'
-        '        data = base64.b64decode(overrides[path])\n'
-        '    else:\n'
+        "    elif path in overrides:\n"
+        "        data = base64.b64decode(overrides[path])\n"
+        "    else:\n"
         '        data = open(os.path.join(root, path), "rb").read()\n'
-        'except OSError as e:\n'
+        "except OSError as e:\n"
         '    sys.stderr.write("gh: Not Found (HTTP 404)\\n")\n'
-        '    sys.exit(1)\n'
-        'print(json.dumps({\n'
+        "    sys.exit(1)\n"
+        "print(json.dumps({\n"
         '    "content": base64.b64encode(data).decode(),\n'
         '    "encoding": "base64",\n'
         '    "size": len(data),\n'
         '    "sha": hashlib.sha1(b"blob %d\\0" % len(data) + data).hexdigest(),\n'
-        '}))\n'
+        "}))\n"
     )
     gh.chmod(0o755)
 
@@ -175,12 +175,8 @@ def test_check_only_unchanged(tmp_path: Path) -> None:
 
     after = _snapshot(root)
 
-    assert result.returncode == 0, (
-        f"expected exit 0, got {result.returncode}; stderr:\n{result.stderr}"
-    )
-    assert result.stdout.strip() == "UNCHANGED", (
-        f"stdout was {result.stdout!r}, stderr {result.stderr!r}"
-    )
+    assert result.returncode == 0, f"expected exit 0, got {result.returncode}; stderr:\n{result.stderr}"
+    assert result.stdout.strip() == "UNCHANGED", f"stdout was {result.stdout!r}, stderr {result.stderr!r}"
     assert after == before, "check-only run modified files under the skill root"
 
 
@@ -250,7 +246,7 @@ def test_update_refreshes_snapshot_and_metadata(tmp_path: Path) -> None:
     lock = b'{"locks": {"aaid": {"integrated_pin": "' + PIN.encode() + b'"}}}\n'
     (root / "skills-lock.json").write_bytes(lock)
 
-    source = (root / "references" / "SOURCE.md")
+    source = root / "references" / "SOURCE.md"
     source.write_text(f"# Source provenance — fixture\n\n{CHECK_STATUS_BLOCK.format(pin=PIN)}")
 
     bin_dir = tmp_path / "bin"
@@ -262,9 +258,7 @@ def test_update_refreshes_snapshot_and_metadata(tmp_path: Path) -> None:
     env["AAID_FAKE_PIN"] = PIN
     env["AAID_FAKE_ROOT"] = str(upstream)
     env["AAID_FAKE_TIP_SHA"] = tip
-    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps(
-        {"docs/guide.md": base64.b64encode(tip_data["docs/guide.md"]).decode()}
-    )
+    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps({"docs/guide.md": base64.b64encode(tip_data["docs/guide.md"]).decode()})
 
     before = _snapshot(root)
     allowed = {
@@ -281,12 +275,8 @@ def test_update_refreshes_snapshot_and_metadata(tmp_path: Path) -> None:
     )
     after = _snapshot(root)
 
-    assert result.returncode == 0, (
-        f"expected exit 0, got {result.returncode}; stderr:\n{result.stderr}"
-    )
-    assert result.stdout.strip() == f"UPDATED {tip}", (
-        f"stdout was {result.stdout!r}, stderr {result.stderr!r}"
-    )
+    assert result.returncode == 0, f"expected exit 0, got {result.returncode}; stderr:\n{result.stderr}"
+    assert result.stdout.strip() == f"UPDATED {tip}", f"stdout was {result.stdout!r}, stderr {result.stderr!r}"
 
     # 2. raw manifest-path files hold tip content; manifest regenerated.
     assert (upstream / "docs/guide.md").read_bytes() == tip_data["docs/guide.md"]
@@ -364,9 +354,7 @@ def test_check_only_idempotent(tmp_path: Path) -> None:
         "     `check-upstream.sh --update` run (design D6); lines inside this block are\n"
         "     data consumed by the checker's freshness report. -->\n"
         "- Last successful check: pending (no authorized refresh run yet)\n"
-        "- Fetched commit: none\n"
-        + pin_entry +
-        "<!-- END CHECK-STATUS -->\n"
+        "- Fetched commit: none\n" + pin_entry + "<!-- END CHECK-STATUS -->\n"
     )
     source = root / "references" / "SOURCE.md"
     source.write_text(f"# Source provenance — fixture\n\n{block}")
@@ -408,7 +396,9 @@ def test_check_only_idempotent(tmp_path: Path) -> None:
         assert r.returncode == 0, f"run {i}: stderr:\n{r.stderr}"
         assert r.stdout.strip() == "UNCHANGED", f"run {i}: {r.stdout!r}"
         assert _snapshot(root) == before, f"run {i} modified the fixture root"
-    assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, "staging residue after run 2"
+    assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, (
+        "staging residue after run 2"
+    )
 
 
 def test_unreviewed_fetched_state_flags_changed(tmp_path: Path) -> None:
@@ -473,9 +463,7 @@ def test_unreviewed_fetched_state_flags_changed(tmp_path: Path) -> None:
         "     `check-upstream.sh --update` run (design D6); lines inside this block are\n"
         "     data consumed by the checker's freshness report. -->\n"
         "- Last successful check: " + datetime.date.today().isoformat() + "\n"
-        f"- Fetched commit: `{tip2}`\n"
-        + pin_entry +
-        "<!-- END CHECK-STATUS -->\n"
+        f"- Fetched commit: `{tip2}`\n" + pin_entry + "<!-- END CHECK-STATUS -->\n"
     )
 
     bin_dir = tmp_path / "bin"
@@ -504,9 +492,7 @@ def test_unreviewed_fetched_state_flags_changed(tmp_path: Path) -> None:
     )
     after = _snapshot(root)
 
-    assert result.returncode == 0, (
-        f"expected exit 0, got {result.returncode}; stderr:\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"expected exit 0, got {result.returncode}; stderr:\n{result.stderr}"
     assert result.stdout.strip() == "CHANGED", (
         f"unreviewed fetched content must stay flagged; stdout was {result.stdout!r}, stderr {result.stderr!r}"
     )
@@ -599,9 +585,7 @@ def test_update_preserves_adapted_skill_and_lessons(tmp_path: Path) -> None:
         "- **Validations**: 1\n"
         "- **Evidence**: fixture paths with spaces round-trip fine.\n"
     )
-    docs["references/CHANGELOG.md"] = (
-        "# Changelog\n\n## 1.0.0\n\n- Adapted from upstream at pin.\n"
-    )
+    docs["references/CHANGELOG.md"] = "# Changelog\n\n## 1.0.0\n\n- Adapted from upstream at pin.\n"
     docs["references/PHASES.md"] = (
         "# Phases\n\n"
         + "".join(f"## Phase {i}\nGate: sign-off {i}.\n\n" for i in range(1, 12))
@@ -625,9 +609,7 @@ def test_update_preserves_adapted_skill_and_lessons(tmp_path: Path) -> None:
         "     `check-upstream.sh --update` run (design D6); lines inside this block are\n"
         "     data consumed by the checker's freshness report. -->\n"
         "- Last successful check: pending (no authorized refresh run yet)\n"
-        "- Fetched commit: none\n"
-        + pin_entry +
-        "<!-- END CHECK-STATUS -->\n"
+        "- Fetched commit: none\n" + pin_entry + "<!-- END CHECK-STATUS -->\n"
     )
 
     bin_dir = tmp_path / "bin"
@@ -658,9 +640,7 @@ def test_update_preserves_adapted_skill_and_lessons(tmp_path: Path) -> None:
     )
     after = _snapshot(root)
 
-    assert result.returncode == 0, (
-        f"expected exit 0, got {result.returncode}; stderr:\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"expected exit 0, got {result.returncode}; stderr:\n{result.stderr}"
     assert result.stdout.strip() == f"UPDATED {tip}", f"stdout {result.stdout!r}"
 
     # Raw snapshot + manifest regenerated at tip.
@@ -732,9 +712,7 @@ def test_check_only_changed(tmp_path: Path) -> None:
     env["AAID_FAKE_PIN"] = PIN
     env["AAID_FAKE_ROOT"] = str(upstream)
     env["AAID_FAKE_TIP_SHA"] = tip
-    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps(
-        {p: base64.b64encode(d).decode() for p, d in changed.items()}
-    )
+    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps({p: base64.b64encode(d).decode() for p, d in changed.items()})
 
     result = subprocess.run(
         ["bash", str(CHECKER)],
@@ -746,12 +724,8 @@ def test_check_only_changed(tmp_path: Path) -> None:
 
     after = _snapshot(root)
 
-    assert result.returncode == 0, (
-        f"expected exit 0, got {result.returncode}; stderr:\n{result.stderr}"
-    )
-    assert result.stdout.strip() == "CHANGED", (
-        f"stdout was {result.stdout!r}, stderr {result.stderr!r}"
-    )
+    assert result.returncode == 0, f"expected exit 0, got {result.returncode}; stderr:\n{result.stderr}"
+    assert result.stdout.strip() == "CHANGED", f"stdout was {result.stdout!r}, stderr {result.stderr!r}"
     assert after == before, "check-only run modified files under the skill root"
 
 
@@ -767,10 +741,7 @@ def _make_failing_gh(bin_dir: Path, exit_code: int, message: str) -> None:
     stderr, nothing on stdout (transport/auth/rate-limit shipping failure)."""
     gh = bin_dir / "gh"
     gh.write_text(
-        "#!/usr/bin/env python3\n"
-        "import sys\n"
-        f"sys.stderr.write({message!r} + chr(10))\n"
-        f"sys.exit({exit_code})\n"
+        f"#!/usr/bin/env python3\nimport sys\nsys.stderr.write({message!r} + chr(10))\nsys.exit({exit_code})\n"
     )
     gh.chmod(0o755)
 
@@ -848,9 +819,7 @@ def test_transport_failures_error(tmp_path: Path, variant: str) -> None:
     )
     after = _snapshot(root)
 
-    assert result.returncode != 0, (
-        f"{variant}: transport failure must exit nonzero; stdout {result.stdout!r}"
-    )
+    assert result.returncode != 0, f"{variant}: transport failure must exit nonzero; stdout {result.stdout!r}"
     out = result.stderr.strip()
     assert out.startswith("ERROR:"), f"{variant}: no ERROR verdict line; got {out!r}"
     # No false freshness: the settled check-status block survives verbatim.
@@ -895,7 +864,12 @@ MALFORMED_SHAPES = {
     },
     "sha_none": {
         "stdout": json.dumps(
-            {"encoding": "base64", "content": base64.b64encode(UPSTREAM_FILES["docs/guide.md"]).decode(), "size": len(UPSTREAM_FILES["docs/guide.md"]), "sha": None}
+            {
+                "encoding": "base64",
+                "content": base64.b64encode(UPSTREAM_FILES["docs/guide.md"]).decode(),
+                "size": len(UPSTREAM_FILES["docs/guide.md"]),
+                "sha": None,
+            }
         )
         + "\n"
     },
@@ -912,9 +886,9 @@ def _make_malformed_gh(bin_dir: Path, shape: dict[str, str]) -> None:
         "args = sys.argv[1:]\n"
         'if any("commits/main" in a for a in args):\n'
         '    print(json.dumps({"sha": os.environ["AAID_FAKE_PIN"]}))\n'
-        '    sys.exit(0)\n'
-        f'sys.stdout.write({shape["stdout"]!r})\n'
-        'sys.exit(0)\n'
+        "    sys.exit(0)\n"
+        f"sys.stdout.write({shape['stdout']!r})\n"
+        "sys.exit(0)\n"
     )
     gh.chmod(0o755)
 
@@ -946,7 +920,9 @@ def test_invalid_content_failures_and_error_sanitization(tmp_path: Path, variant
     out = result.stderr.strip()
     assert out.startswith("ERROR:"), f"{variant}: no ERROR verdict line; got {out!r}"
     assert after == before, f"{variant}: run modified the fixture root"
-    assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, f"{variant}: staging residue"
+    assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, (
+        f"{variant}: staging residue"
+    )
 
 
 def test_error_output_sanitized_single_line(tmp_path: Path) -> None:
@@ -977,9 +953,7 @@ def test_error_output_sanitized_single_line(tmp_path: Path) -> None:
     assert lines[0].startswith("ERROR:"), result.stderr
     # Anti-spoof contract: the forged verdict never appears as its OWN line;
     # collapsed into the reason line it is inert (a human reads one line).
-    assert len(lines) == 1 and not lines[0].endswith("UNCHANGED"), (
-        f"spoofed verdict line survived: {result.stderr!r}"
-    )
+    assert len(lines) == 1 and not lines[0].endswith("UNCHANGED"), f"spoofed verdict line survived: {result.stderr!r}"
     assert all(ch.isprintable() or ch == " " for ch in lines[0]), f"control chars remain: {lines[0]!r}"
     assert "\x1b" not in lines[0] and "[31m" in lines[0]  # ESC stripped, text kept
     assert len(lines[0]) <= 300 + len("ERROR: ")
@@ -998,9 +972,7 @@ PARSE_SHAPES = {
     list(PARSE_SHAPES) + ["manifest_corrupt", "raw_file_missing"],
     ids=list(PARSE_SHAPES) + ["manifest_corrupt", "raw_file_missing"],
 )
-def test_parse_and_local_input_errors_report_error(
-    tmp_path: Path, variant: str
-) -> None:
+def test_parse_and_local_input_errors_report_error(tmp_path: Path, variant: str) -> None:
     """Non-dict JSON from gh and corrupt/absent local inputs must surface as
     ONE sanitized `ERROR:` line on stderr with nonzero exit — never a raw
     traceback ('Traceback (most recent call last)' must not appear) and never
@@ -1032,11 +1004,11 @@ def test_parse_and_local_input_errors_report_error(
     assert result.stdout == "", f"{variant}: stdout not empty: {result.stdout!r}"
     err = result.stderr.strip()
     assert err.startswith("ERROR:"), f"{variant}: no ERROR verdict line; got {err[:200]!r}"
-    assert "Traceback (most recent call last)" not in result.stderr, (
-        f"{variant}: raw traceback escaped to stderr"
-    )
+    assert "Traceback (most recent call last)" not in result.stderr, f"{variant}: raw traceback escaped to stderr"
     assert after == before, f"{variant}: run modified the fixture root"
-    assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, f"{variant}: staging residue"
+    assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, (
+        f"{variant}: staging residue"
+    )
 
 
 def test_interrupted_update_preserves_last_good_state(tmp_path: Path) -> None:
@@ -1061,15 +1033,15 @@ def test_interrupted_update_preserves_last_good_state(tmp_path: Path) -> None:
         '    if "contents/" in a:\n'
         '        path = a.split("contents/", 1)[1]\n'
         'if path == "docs/guide.md":\n'
-        "    data = open(os.path.join(os.environ[\"AAID_FAKE_ROOT\"], path), \"rb\").read()\n"
+        '    data = open(os.path.join(os.environ["AAID_FAKE_ROOT"], path), "rb").read()\n'
         "    print(json.dumps({\n"
-        "        \"content\": base64.b64encode(data).decode(),\n"
-        "        \"encoding\": \"base64\",\n"
-        "        \"size\": len(data),\n"
-        "        \"sha\": hashlib.sha1(b\"blob %d\\0\" % len(data) + data).hexdigest(),\n"
+        '        "content": base64.b64encode(data).decode(),\n'
+        '        "encoding": "base64",\n'
+        '        "size": len(data),\n'
+        '        "sha": hashlib.sha1(b"blob %d\\0" % len(data) + data).hexdigest(),\n'
         "    }))\n"
         "    sys.exit(0)\n"
-        "sys.stderr.write(\"gh: HTTP 500 (network)\\n\")\n"
+        'sys.stderr.write("gh: HTTP 500 (network)\\n")\n'
         "sys.exit(1)\n"
     )
     gh.chmod(0o755)
@@ -1094,7 +1066,9 @@ def test_interrupted_update_preserves_last_good_state(tmp_path: Path) -> None:
     assert err.startswith("ERROR:"), f"no ERROR verdict line; got {err[:200]!r}"
     assert "Traceback (most recent call last)" not in result.stderr
     assert after == before, "interrupted --update modified the last-good fixture root"
-    assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, "staging residue after interrupted update"
+    assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, (
+        "staging residue after interrupted update"
+    )
     assert "Last successful check: 2026-10-23" in source.read_text()
 
 
@@ -1155,9 +1129,7 @@ def test_missing_tools_and_assets(tmp_path: Path, variant: str) -> None:
         # Pinned pre-check reason (the honest contract: the shell-level
         # pre-check message shape, not the generic python router).
         assert err == "ERROR: gh not found on PATH", f"unexpected reason: {err!r}"
-    assert "Traceback (most recent call last)" not in result.stderr, (
-        f"{variant}: raw traceback escaped to stderr"
-    )
+    assert "Traceback (most recent call last)" not in result.stderr, f"{variant}: raw traceback escaped to stderr"
     if variant == "source_absent_update":
         # Pinned specific-reason contract: names SOURCE.md AND is not the
         # generic routed 'unexpected <Type>' formulation (the identity path
@@ -1166,7 +1138,9 @@ def test_missing_tools_and_assets(tmp_path: Path, variant: str) -> None:
             f"{variant}: reason must be SOURCE-specific; got {err!r}"
         )
     assert after == before, f"{variant}: run modified the fixture root"
-    assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, f"{variant}: staging residue"
+    assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, (
+        f"{variant}: staging residue"
+    )
 
 
 def test_paths_with_spaces_end_to_end(tmp_path: Path) -> None:
@@ -1214,9 +1188,7 @@ def test_paths_with_spaces_end_to_end(tmp_path: Path) -> None:
         "# Source provenance — fixture\n\n"
         "<!-- BEGIN CHECK-STATUS: checker-maintained -->\n"
         "- Last successful check: pending\n"
-        "- Fetched commit: none\n"
-        + pin_entry +
-        "<!-- END CHECK-STATUS -->\n"
+        "- Fetched commit: none\n" + pin_entry + "<!-- END CHECK-STATUS -->\n"
     )
 
     bin_dir = tmp_path / "fake bin with space"
@@ -1368,9 +1340,7 @@ def test_unsafe_manifest_paths_rejected(tmp_path: Path, variant: str) -> None:
     be written outside the skill root: a probe file at the escape's resolve
     target (variant a) and the whole tmp tree outside skill-root/ stay
     byte-untouched; the last-good fixture root stays byte-identical."""
-    base, root, upstream, source, env = _unsafe_path_fixture(
-        tmp_path, UNSAFE_PATHS[variant]
-    )
+    base, root, upstream, source, env = _unsafe_path_fixture(tmp_path, UNSAFE_PATHS[variant])
     # Probe: the exact file the relative variant resolves to, OUTSIDE the
     # skill root, present with matching bytes so every stage of a pre-fix run
     # could proceed (reads via the join-escape, fetch, staging write, cutover).
@@ -1381,9 +1351,7 @@ def test_unsafe_manifest_paths_rejected(tmp_path: Path, variant: str) -> None:
     # across BOTH runs (relative-escape and absolute-escape writes all land
     # somewhere under base/skill-root/../ — i.e. under base, not root).
     def outside() -> dict[str, str]:
-        return {
-            k: v for k, v in _snapshot(base).items() if not k.startswith("skill-root")
-        }
+        return {k: v for k, v in _snapshot(base).items() if not k.startswith("skill-root")}
 
     expected = outside()  # bin/gh + probe file; nothing else may ever appear
 
@@ -1412,9 +1380,7 @@ def test_unsafe_manifest_paths_rejected(tmp_path: Path, variant: str) -> None:
         assert "unsafe manifest path" in lines[0], (
             f"{variant}/{mode}: reason must be path-containment specific: {lines[0]!r}"
         )
-        assert UNSAFE_PATHS[variant] in lines[0], (
-            f"{variant}/{mode}: reason must name the unsafe path: {lines[0]!r}"
-        )
+        assert UNSAFE_PATHS[variant] in lines[0], f"{variant}/{mode}: reason must name the unsafe path: {lines[0]!r}"
         assert "Traceback (most recent call last)" not in result.stderr
         # Zero writes: probe file untouched, the PROBE DIR (an 'outside' dir
         # sibling of the probe file) never created/appears, nothing anywhere
@@ -1422,13 +1388,12 @@ def test_unsafe_manifest_paths_rejected(tmp_path: Path, variant: str) -> None:
         assert probe.read_bytes() == EVIL_BYTES, f"{variant}/{mode}: probe file written"
         assert not (base / "outside").exists(), f"{variant}/{mode}: outside dir appeared"
         assert outside() == expected, (
-            f"{variant}/{mode}: writes escaped the skill root: "
-            f"{set(outside()) - set(expected)}"
+            f"{variant}/{mode}: writes escaped the skill root: {set(outside()) - set(expected)}"
         )
-        assert _snapshot(root) == before_root, (
-            f"{variant}/{mode}: root modified despite rejection"
+        assert _snapshot(root) == before_root, f"{variant}/{mode}: root modified despite rejection"
+        assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, (
+            f"{variant}/{mode}: staging residue"
         )
-        assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, f"{variant}/{mode}: staging residue"
     # The settled SOURCE block is never rewritten by a rejected run.
     assert "Last successful check: 2026-10-23" in source.read_text()
 
@@ -1438,7 +1403,7 @@ MALICIOUS_PAYLOAD = (
     b"$(touch 'malicious marker one')\n"
     b"`touch 'malicious marker two'`\n"
     b"; rm -rf 'everywhere'\n"
-    b'\x1b[31mCHANGED \x1b[0m UNCHANGED\n'
+    b"\x1b[31mCHANGED \x1b[0m UNCHANGED\n"
     b'import os; __import__("os").system("touch \'malicious marker three\'")\n'
 )
 
@@ -1510,9 +1475,7 @@ def test_malicious_upstream_content_is_inert(tmp_path: Path) -> None:
     before_out = outside()
 
     # Mode 1: check-only, pin == tip -> UNCHANGED, zero writes, bytes inert.
-    r1 = subprocess.run(
-        ["bash", str(CHECKER)], capture_output=True, text=True, env=env, timeout=120
-    )
+    r1 = subprocess.run(["bash", str(CHECKER)], capture_output=True, text=True, env=env, timeout=120)
     assert r1.returncode == 0, f"check-only stderr:\n{r1.stderr}"
     assert r1.stdout.strip() == "UNCHANGED", f"check-only stdout: {r1.stdout!r}"
 
@@ -1522,9 +1485,7 @@ def test_malicious_upstream_content_is_inert(tmp_path: Path) -> None:
         "references/SOURCE.md",
     }
     before2 = _snapshot(root)
-    r2 = subprocess.run(
-        ["bash", str(CHECKER), "--update"], capture_output=True, text=True, env=env, timeout=120
-    )
+    r2 = subprocess.run(["bash", str(CHECKER), "--update"], capture_output=True, text=True, env=env, timeout=120)
     assert r2.returncode == 0, f"--update stderr:\n{r2.stderr}"
     assert r2.stdout.strip() == f"UPDATED {PIN}", f"--update stdout: {r2.stdout!r}"
 
@@ -1553,17 +1514,13 @@ def test_malicious_upstream_content_is_inert(tmp_path: Path) -> None:
         raise AssertionError(f"payload executed?: {bad}")
     for f2 in list(tmp_path.rglob("marker")) + list(tmp_path.rglob("everywhere")):
         raise AssertionError(f"payload executed?: {f2}")
-    assert outside() == before_out, (
-        f"malicious run wrote outside the skill root: {set(outside()) - set(before_out)}"
-    )
+    assert outside() == before_out, f"malicious run wrote outside the skill root: {set(outside()) - set(before_out)}"
     # Whole-root diff is exactly the allowed update set.
     after2 = _snapshot(root)
     gone = set(before2) - set(after2)
     added = set(after2) - set(before2)
     changed = {k for k in set(before2) | set(after2) if before2.get(k) != after2.get(k)}
-    assert changed == allowed - gone, (
-        f"changed: {sorted(changed)} gone: {sorted(gone)} added: {sorted(added)}"
-    )
+    assert changed == allowed - gone, f"changed: {sorted(changed)} gone: {sorted(gone)} added: {sorted(added)}"
 
 
 # ---------------------------------------------------------------------------
@@ -1714,13 +1671,9 @@ def test_real_world_shape_regressions(tmp_path: Path, shape: str) -> None:
         (bin_dir / "dirname").symlink_to(shutil.which("dirname"))
 
     before = _snapshot(root)
-    result = subprocess.run(
-        [BASH, str(checker)], capture_output=True, text=True, env=env, timeout=120
-    )
+    result = subprocess.run([BASH, str(checker)], capture_output=True, text=True, env=env, timeout=120)
 
-    assert result.returncode == 0, (
-        f"{shape}: stderr:\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"{shape}: stderr:\n{result.stderr}"
     assert result.stdout.strip() == "UNCHANGED", f"{shape}: stdout {result.stdout!r}"
 
     calls = log.read_text().splitlines()
@@ -1731,22 +1684,15 @@ def test_real_world_shape_regressions(tmp_path: Path, shape: str) -> None:
         assert "repos/dawid-dahl-umain/augmented-ai-development/" in call, (
             f"{shape}: unnormalized gh api call: {call!r}"
         )
-        assert "https://" not in call and "http://" not in call, (
-            f"{shape}: raw URL reached gh api: {call!r}"
-        )
+        assert "https://" not in call and "http://" not in call, f"{shape}: raw URL reached gh api: {call!r}"
     joined = "\n".join(repo_calls)
     assert f"repos/{NORMALIZED_REPO}/commits/main" in joined, f"{shape}: no tip call: {joined!r}"
     for path in ("docs/guide.md", "rules/rule.mdc"):
-        assert f"repos/{NORMALIZED_REPO}/contents/{path}" in joined, (
-            f"{shape}: contents call missing for {path}"
-        )
+        assert f"repos/{NORMALIZED_REPO}/contents/{path}" in joined, f"{shape}: contents call missing for {path}"
 
     # Zero writes: check-only leaves the whole fixture root byte-identical.
     assert _snapshot(root) == before, f"{shape}: root written during check-only"
     assert not (root / ".cache").exists(), f"{shape}: .cache residue"
-
-
-
 
 
 # ---------------------------------------------------------------------------
@@ -1754,6 +1700,7 @@ def test_real_world_shape_regressions(tmp_path: Path, shape: str) -> None:
 # Each test names the finding it pins. Behavior-preserving for the 33 legacy
 # semantics except where disclosed in the hardening review.
 # ---------------------------------------------------------------------------
+
 
 def _harden_fixture(tmp_path: Path) -> tuple[Path, Path, Path, Path, dict[str, str]]:
     """Last-good fixture root (like _failure_fixture) + healthy fake gh with
@@ -1769,12 +1716,11 @@ def _harden_fixture(tmp_path: Path) -> tuple[Path, Path, Path, Path, dict[str, s
 
 
 def _run(root: Path, env: dict[str, str], *args: str) -> subprocess.CompletedProcess:
-    return subprocess.run(
-        [BASH, str(CHECKER), *args], capture_output=True, text=True, env=env, timeout=120
-    )
+    return subprocess.run([BASH, str(CHECKER), *args], capture_output=True, text=True, env=env, timeout=120)
 
 
 # --- malicious remote tip metadata must never reach output --------------
+
 
 def _make_tip_sha_gh(bin_dir: Path, upstream: Path, tip_sha: str) -> None:
     """Fake `gh` answering the commits call with an ATTACKER-CONTROLLED sha and
@@ -1794,7 +1740,7 @@ def _make_tip_sha_gh(bin_dir: Path, upstream: Path, tip_sha: str) -> None:
         '    if "repos/example/ex/contents/" in a:\n'
         '        path = a.split("repos/example/ex/contents/", 1)[1]\n'
         '    elif a.startswith("ref="):\n'
-        '        ref = a[4:]\n'
+        "        ref = a[4:]\n"
         "data = open(os.path.join(os.environ['AAID_FAKE_ROOT'], path), 'rb').read()\n"
         "print(json.dumps({\n"
         "    'content': base64.b64encode(data).decode(),\n"
@@ -1918,9 +1864,9 @@ def _alias_fixture(tmp_path: Path):
         '    sys.stderr.write("gh: HTTP 500 (network)\\n")\n'
         "    sys.exit(1)\n"
         'if path == "docs/guide.md" and os.environ.get("AAID_TIP_GUIDE_B64") and os.environ["AAID_FAKE_TIP_SHA"] != os.environ["AAID_FAKE_PIN"]:\n'
-        "    data = base64.b64decode(os.environ[\"AAID_TIP_GUIDE_B64\"])\n"
+        '    data = base64.b64decode(os.environ["AAID_TIP_GUIDE_B64"])\n'
         "else:\n"
-        "    data = open(os.path.join(os.environ[\"AAID_FAKE_ROOT\"], path), \"rb\").read()\n"
+        '    data = open(os.path.join(os.environ["AAID_FAKE_ROOT"], path), "rb").read()\n'
         "print(json.dumps({\n"
         "    'content': base64.b64encode(data).decode(),\n"
         "    'encoding': 'base64',\n"
@@ -1956,9 +1902,9 @@ def test_i2_alias_escape_cannot_reach_live_tree(tmp_path: Path) -> None:
 
     assert result.returncode != 0 and result.stdout == ""
     assert "ERROR:" in result.stderr.splitlines()[0], result.stderr
-    assert not list(
-        (root / ".cache").glob("staging-*")
-    ) if (root / ".cache").is_dir() else True, "staging residue (fetch phase)"
+    assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, (
+        "staging residue (fetch phase)"
+    )
     live = root / "assets" / "upstream" / "docs/guide.md"
     assert live.read_bytes() == b"alpha line\n", "ALIAS PATH REACHED THE LIVE TREE"
     assert (upstream / "rules/rule.mdc").read_bytes() == b"beta line\n"
@@ -1991,7 +1937,8 @@ def test_i2_alias_canonical_form_used_end_to_end(tmp_path: Path) -> None:
     assert (upstream / "docs/guide.md").read_bytes() == b"alpha line changed\n"
     new_manifest = json.loads((upstream / "MANIFEST.json").read_text())
     assert {e["path"] for e in new_manifest["files"]} == {
-        "docs/guide.md", "rules/rule.mdc",  # canonical, alias spelling gone
+        "docs/guide.md",
+        "rules/rule.mdc",  # canonical, alias spelling gone
     }
     assert new_manifest["resolved_commit"] == tip
     assert not list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else True, "staging residue"
@@ -2043,6 +1990,7 @@ def test_i2_reserved_policy_paths_rejected(tmp_path: Path, reserved: str) -> Non
 
 # --- detectable interruption + retained staging on cutover failure ---
 
+
 def test_i3_mid_cutover_state_is_detectable_error(tmp_path: Path) -> None:
     """(corruption detectability): simulate death between cutover
     steps — raw files advanced to tip bytes while MANIFEST.json keeps the
@@ -2075,9 +2023,7 @@ def test_i3_cutover_failure_retains_complete_staging(tmp_path: Path) -> None:
     tip = "tip0000000000000000000000000000000000000002"
     guide_tip = b"alpha line changed\n"
     env["AAID_FAKE_TIP_SHA"] = tip
-    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps(
-        {"docs/guide.md": base64.b64encode(guide_tip).decode()}
-    )
+    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps({"docs/guide.md": base64.b64encode(guide_tip).decode()})
     source.chmod(0o444)
     try:
         result = _run(root, env, "--update")
@@ -2106,6 +2052,7 @@ def test_i3_cutover_failure_retains_complete_staging(tmp_path: Path) -> None:
 
 
 # --- per-invocation staging + exclusive update lock ------------------
+
 
 def test_i4_third_lock_blocks_update(tmp_path: Path) -> None:
     """(lock): a pre-existing .cache/update.lock (another updater or
@@ -2286,9 +2233,7 @@ def test_dest_symlink_is_replaced_not_followed(tmp_path: Path) -> None:
     tip = "tip0000000000000000000000000000000000000002"
     guide_tip = b"alpha line changed\n"
     env["AAID_FAKE_TIP_SHA"] = tip
-    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps(
-        {"docs/guide.md": base64.b64encode(guide_tip).decode()}
-    )
+    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps({"docs/guide.md": base64.b64encode(guide_tip).decode()})
     # Victim: a live dest path swapped to a symlink pointing at an unrelated
     # target outside the authorized tree. The target holds the PIN bytes so
     # the local-snapshot validation passes (reads follow the symlink); the
@@ -2305,9 +2250,7 @@ def test_dest_symlink_is_replaced_not_followed(tmp_path: Path) -> None:
     assert result.stdout.strip() == f"UPDATED {tip}", result.stdout
     assert not live.is_symlink(), "dest stayed a symlink after cutover"
     assert live.is_file() and live.read_bytes() == guide_tip, "dest content wrong"
-    assert victim_target.read_bytes() == UPSTREAM_FILES["docs/guide.md"], (
-        "symlink target was written through"
-    )
+    assert victim_target.read_bytes() == UPSTREAM_FILES["docs/guide.md"], "symlink target was written through"
 
 
 def test_no_symlinks_in_upstream_after_update(tmp_path: Path) -> None:
@@ -2320,9 +2263,7 @@ def test_no_symlinks_in_upstream_after_update(tmp_path: Path) -> None:
     tip = "tip0000000000000000000000000000000000000002"
     guide_tip = b"alpha line changed\n"
     env["AAID_FAKE_TIP_SHA"] = tip
-    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps(
-        {"docs/guide.md": base64.b64encode(guide_tip).decode()}
-    )
+    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps({"docs/guide.md": base64.b64encode(guide_tip).decode()})
     # Pre-planted symlink forest OUTSIDE the write set (siblings of the
     # snapshot, plus an unrelated name next to MANIFEST.json): if the
     # checker ever adopted/followed planted links these would be altered.
@@ -2369,9 +2310,7 @@ def test_truncated_begin_marker_is_error(tmp_path: Path) -> None:
     before = _snapshot(root)
     result = _run(root, env)
 
-    assert result.returncode != 0 and result.stdout == "", (
-        f"stdout {result.stdout!r} stderr {result.stderr!r}"
-    )
+    assert result.returncode != 0 and result.stdout == "", f"stdout {result.stdout!r} stderr {result.stderr!r}"
     assert "ERROR: malformed check-status block" in result.stderr, result.stderr
     assert _snapshot(root) == before, "the erroring run wrote to the fixture root"
 
@@ -2391,9 +2330,7 @@ def test_marker_trace_scope(tmp_path: Path) -> None:
     # OWN line? No — substring-in-line is the contract: any line containing
     # BEGIN CHECK-STATUS (even mid-line prose quoting the token) counts as
     # a trace and yields ERROR once strict validation cannot complete.
-    source.write_text(
-        "# Provenance\n\nSomeone wrote BEGIN CHECK-STATUS inside a sentence.\n"
-    )
+    source.write_text("# Provenance\n\nSomeone wrote BEGIN CHECK-STATUS inside a sentence.\n")
     r2 = _run(root, env)
     assert r2.returncode != 0, r2.stdout
     assert "malformed check-status block" in r2.stderr, r2.stderr

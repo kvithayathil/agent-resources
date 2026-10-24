@@ -116,19 +116,29 @@ class TestDiscovery:
         for name in ("aaid-tdd-workflow", "aaid-bdd-workflow"):
             upstream = patched_skills_dir / "aaid" / "assets" / "upstream" / "plugins" / name / "skills" / name
             upstream.mkdir(parents=True)
-            (upstream / "SKILL.md").write_text(
-                f"---\nname: {name}\ndescription: test\n---\nbody", encoding="utf-8"
-            )
+            (upstream / "SKILL.md").write_text(f"---\nname: {name}\ndescription: test\n---\nbody", encoding="utf-8")
         dirs = sync_index._discover_skill_dirs()
         rels = {d.relative_to(patched_skills_dir) for d in dirs}
         assert not any("assets" in d.parts for d in dirs)
         tdd_dir = (
-            patched_skills_dir / "aaid" / "assets" / "upstream"
-            / "plugins" / "aaid-tdd-workflow" / "skills" / "aaid-tdd-workflow"
+            patched_skills_dir
+            / "aaid"
+            / "assets"
+            / "upstream"
+            / "plugins"
+            / "aaid-tdd-workflow"
+            / "skills"
+            / "aaid-tdd-workflow"
         )
         bdd_dir = (
-            patched_skills_dir / "aaid" / "assets" / "upstream"
-            / "plugins" / "aaid-bdd-workflow" / "skills" / "aaid-bdd-workflow"
+            patched_skills_dir
+            / "aaid"
+            / "assets"
+            / "upstream"
+            / "plugins"
+            / "aaid-bdd-workflow"
+            / "skills"
+            / "aaid-bdd-workflow"
         )
         assert tdd_dir not in dirs
         assert bdd_dir not in dirs
@@ -139,9 +149,7 @@ class TestDiscovery:
         skill itself; trailing `assets` path parts never conclude discovery."""
         aaid = patched_skills_dir / "aaid"
         aaid.mkdir(exist_ok=True)
-        (aaid / "SKILL.md").write_text(
-            "---\nname: aaid\ndescription: test\n---\nbody", encoding="utf-8"
-        )
+        (aaid / "SKILL.md").write_text("---\nname: aaid\ndescription: test\n---\nbody", encoding="utf-8")
         dirs = sync_index._discover_skill_dirs()
         names = {d.name for d in dirs}
         assert "aaid" in names
