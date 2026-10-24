@@ -18,7 +18,7 @@ Skills management for AI coding agents following the [AgentSkills](https://agent
 - **Quality gate**: `just check` runs ruff → basedpyright → vulture → pylint → jscpd → pip-audit → skill validation.
 - **Skills** may live as `skills/<name>/SKILL.md` or `skills/<group>/<name>/SKILL.md` (recursive scanning).
 - **Self-learning skills** (vdd, vsdd, security, aaid): agent may modify `references/` files based on real-world evidence.
-- **Self-updating skills** (security, aaid): run freshness checks when `last-reviewed` is >7 days old (or on explicit request or relevant upstream incident). See SKILL.md for update commands. AAID also ships `skills/aaid/scripts/check-upstream.sh` (run via `just validate aaid` for format checks; checker itself: check-only or `--update`) which compares the pinned upstream commit and reports UNCHANGED/CHANGED/ERROR without touching adapted instructions.
+- **Self-updating skills** (security, aaid): run freshness checks when `last-reviewed` is >7 days old (or on explicit request or relevant upstream incident). See SKILL.md for update commands. These skills may ship their own upstream checker invoked directly (no justfile recipe; e.g. `skills/<skill>/scripts/check-upstream.sh`) — see each skill's SKILL.md/SOURCE.md for exact usage and last-check state.
 
 ## Auto-Update
 
