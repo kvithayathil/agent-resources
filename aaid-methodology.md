@@ -1,0 +1,10 @@
+---
+title: "AAID methodology and decisions"
+tags: ["methodology"]
+sources: []
+contributors: ["unknown"]
+created: 2026-10-24
+updated: 2026-10-24
+---
+
+The aaid skill is one portable adaptation of Dawid Dahl/Umain's Augmented AI Development methodology: a compact entrypoint (~144 lines) plus 16 phase-specific references in skills/aaid/. Binding decisions (design D1-D9): four-layer acceptance testing with explicit ownership — executable spec, business DSL (no business/remembered assertion state), protocol driver (owns assertions, bounded polling), production-like real SUT (owned persistence, no stubs for owned services); human STOP after every phase including explicit no-op REFACTOR; ask test-list vs single-test preference before the first test; pre-work gate check amendment (1.0.1) added after M5/M6 drift evidence showed stage changes almost authorizing plan-only implementation; preconditions required before context phase; plan-only boundary cannot be authorized by staged files. Provenance: pinned upstream commit 54b4e5f0600f0d49131b74ffcb686876582ee20c with a 12-path blob-SHA manifest tree-verified 2026-10-24; upstream ships NO LICENSE file but plugin manifests declare author Dawid Dahl / license MIT — user decision 2026-10-23 accepted that declaration with explicit risk, recorded in ATTRIBUTION.md; in-skill references were synthesized originally. Checker: scripts/check-upstream.sh reports UNCHANGED/CHANGED/ERROR (nonzero exit, last-good data preserved); --update writes staged only and keeps adapted instructions; fetched-vs-integrated pins stay separate; a real run on 2026-10-24 reported UNCHANGED. Evidence: block-2 routing trials (T1-T5, T4 plan-only fix verified by rerun); block-4 ten trials including M5/M6 breaches -> 1.0.1 amendment -> M5R zero-crossing; adversarial trials proved duplicate evidence cannot drive three-task promotion and no fabricated lesson removed STOP/layer rules. Do not generalize this into a skill-eval evaluator or standalone suite audit — deliberately deferred separate changes (Anthropic skill-creator pattern is the confirmed follow-up foundation).
