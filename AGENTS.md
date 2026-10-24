@@ -10,7 +10,7 @@ Skills management for AI coding agents following the [AgentSkills](https://agent
 - Skill format: `docs/skill-format.md`
 - Project knowledge: `crosslink knowledge list` (search: `crosslink knowledge search <query>`)
 - Enhancement proposals: `docs/enhancements/` (see `_template.md` for spec)
-- Research: `research/README.md`
+- Research notes: `openspec/research/README.md` (local-only tree — not committed with the repo)
 
 ## Agent-Specific Conventions
 
@@ -28,7 +28,7 @@ Keep indexes in sync when changes are made. Do not wait to be asked.
 - **New justfile recipe** → no action needed (agent can run `just --list`)
 - **New top-level directory** → update Structure list in `README.md`
 - **New enhancement** → update `docs/enhancements/README.md` index
-- **New research file** → update `research/README.md` index
+- **New research file** → update `openspec/research/README.md` index (local-only tree)
 - **Enhancement status change** → update frontmatter AND index table in `docs/enhancements/README.md`
 
 ## Project Knowledge
