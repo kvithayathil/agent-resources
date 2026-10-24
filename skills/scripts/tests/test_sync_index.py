@@ -112,6 +112,50 @@ class TestDiscovery:
         names = {d.name for d in dirs}
         assert "scripts" not in names
 
+    def test_ignores_raw_upstream_asset_snapshots(self, patched_skills_dir: Path):
+        for name in ("aaid-tdd-workflow", "aaid-bdd-workflow"):
+            upstream = patched_skills_dir / "aaid" / "assets" / "upstream" / "plugins" / name / "skills" / name
+            upstream.mkdir(parents=True)
+            (upstream / "SKILL.md").write_text(f"---\nname: {name}\ndescription: test\n---\nbody", encoding="utf-8")
+        dirs = sync_index._discover_skill_dirs()
+        rels = {d.relative_to(patched_skills_dir) for d in dirs}
+        assert not any("assets" in d.parts for d in dirs)
+        tdd_dir = (
+            patched_skills_dir
+            / "aaid"
+            / "assets"
+            / "upstream"
+            / "plugins"
+            / "aaid-tdd-workflow"
+            / "skills"
+            / "aaid-tdd-workflow"
+        )
+        bdd_dir = (
+            patched_skills_dir
+            / "aaid"
+            / "assets"
+            / "upstream"
+            / "plugins"
+            / "aaid-bdd-workflow"
+            / "skills"
+            / "aaid-bdd-workflow"
+        )
+        assert tdd_dir not in dirs
+        assert bdd_dir not in dirs
+        assert all("assets" not in d.parts for d in rels)
+
+    def test_still_discovers_aaid_top_level(self, patched_skills_dir: Path):
+        """Positive control: nested assets/ must not hide the top-level aaid
+        skill itself; trailing `assets` path parts never conclude discovery."""
+        aaid = patched_skills_dir / "aaid"
+        aaid.mkdir(exist_ok=True)
+        (aaid / "SKILL.md").write_text("---\nname: aaid\ndescription: test\n---\nbody", encoding="utf-8")
+        dirs = sync_index._discover_skill_dirs()
+        names = {d.name for d in dirs}
+        assert "aaid" in names
+        assert any(d == aaid for d in dirs)
+        assert dirs  # discovery never silently empty
+
 
 class TestValidation:
     def test_valid_skill_passes(self, patched_skills_dir: Path):

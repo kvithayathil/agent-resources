@@ -10,15 +10,15 @@ Skills management for AI coding agents following the [AgentSkills](https://agent
 - Skill format: `docs/skill-format.md`
 - Project knowledge: `crosslink knowledge list` (search: `crosslink knowledge search <query>`)
 - Enhancement proposals: `docs/enhancements/` (see `_template.md` for spec)
-- Research: `research/README.md`
+- Research notes: `openspec/research/README.md` (local-only tree — not committed with the repo)
 
 ## Agent-Specific Conventions
 
 - **Justfile** is the command source of truth. Use `just` over raw commands.
 - **Quality gate**: `just check` runs ruff → basedpyright → vulture → pylint → jscpd → pip-audit → skill validation.
 - **Skills** may live as `skills/<name>/SKILL.md` or `skills/<group>/<name>/SKILL.md` (recursive scanning).
-- **Self-learning skills** (vdd, vsdd, security): agent may modify `references/` files based on real-world evidence.
-- **Self-updating skills** (security): run freshness checks when `last-reviewed` is >7 days old. See SKILL.md for update commands.
+- **Self-learning skills** (vdd, vsdd, security, aaid): agent may modify `references/` files based on real-world evidence.
+- **Self-updating skills** (security, aaid): run freshness checks when `last-reviewed` is >7 days old (or on explicit request or relevant upstream incident). See SKILL.md for update commands. These skills may ship their own upstream checker invoked directly (no justfile recipe; e.g. `skills/<skill>/scripts/check-upstream.sh`) — see each skill's SKILL.md/SOURCE.md for exact usage and last-check state.
 
 ## Auto-Update
 
@@ -28,7 +28,7 @@ Keep indexes in sync when changes are made. Do not wait to be asked.
 - **New justfile recipe** → no action needed (agent can run `just --list`)
 - **New top-level directory** → update Structure list in `README.md`
 - **New enhancement** → update `docs/enhancements/README.md` index
-- **New research file** → update `research/README.md` index
+- **New research file** → update `openspec/research/README.md` index (local-only tree)
 - **Enhancement status change** → update frontmatter AND index table in `docs/enhancements/README.md`
 
 ## Project Knowledge

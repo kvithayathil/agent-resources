@@ -112,6 +112,14 @@
       "provider": "manual",
       "installed_at": "2026-04-17",
       "remote_path": "root"
+    },
+    "aaid": {
+      "source": "https://github.com/dawid-dahl-umain/augmented-ai-development",
+      "ref": "54b4e5f0600f0d49131b74ffcb686876582ee20c",
+      "source_type": "gh-api",
+      "provider": "manual",
+      "installed_at": "2026-10-24",
+      "remote_path": "."
     }
   }
 }

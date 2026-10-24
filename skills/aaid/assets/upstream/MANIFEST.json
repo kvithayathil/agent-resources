@@ -1,0 +1,80 @@
+{
+  "repository": "https://github.com/dawid-dahl-umain/augmented-ai-development",
+  "default_branch": "main",
+  "resolved_commit": "54b4e5f0600f0d49131b74ffcb686876582ee20c",
+  "generated": "2026-10-24",
+  "files": [
+    {
+      "path": ".claude-plugin/marketplace.json",
+      "bytes": 3220,
+      "sha256": "eb170745f5d02c582cae0907e7d21beecde3cfd30a70b8b7975944952014eb47",
+      "git_blob_sha": "66275c1d1b97e915fa3d21779bcfffa6e15cc206"
+    },
+    {
+      "path": "aaid-workflow-diagram.mermaid",
+      "bytes": 10344,
+      "sha256": "2d1e06ff1767b85b83b5701d769f155412edb3e60230e5be8efaab3ebb42be84",
+      "git_blob_sha": "ed35fd960cb28671bc26860fa7a3ae6357b1d8ce"
+    },
+    {
+      "path": "appendices/appendix-a/docs/aaid-acceptance-testing-workflow.md",
+      "bytes": 63718,
+      "sha256": "0758e40a8aae202632ba0f1369cb17425e992f489bc58c2810656df3dc6e3f65",
+      "git_blob_sha": "5528f756af9fbfb6b99906e31b2d42903e323c81"
+    },
+    {
+      "path": "appendices/appendix-b/reusable-prompts.md",
+      "bytes": 12215,
+      "sha256": "e5a308b01a3cc5ec9d95131bbcd33e2d3a46b1fdfc269460cfb50b454b4388e3",
+      "git_blob_sha": "7da27fbb693d1fa79943289e424323ba9e14316a"
+    },
+    {
+      "path": "appendices/appendix-d/handling-technical-implementation-details.md",
+      "bytes": 31872,
+      "sha256": "8b4d0a6fb96a5d1112c12973b71d10e9af2afe2da3680587e5108e6f5dc5e659",
+      "git_blob_sha": "e29eb8e536dfab5402988f755771f98e84af7dc4"
+    },
+    {
+      "path": "appendices/appendix-e/dependencies-and-mocking.md",
+      "bytes": 18136,
+      "sha256": "6f1a773f8986d9a028091cd5d52962604d136e95ade5e2daa75bbab9892a3e65",
+      "git_blob_sha": "c5480e348e9836e535e7892b9530ac5ef42f8161"
+    },
+    {
+      "path": "docs/aidd-workflow.md",
+      "bytes": 87972,
+      "sha256": "7d27861dd03c81ac835246de3b06128b98263cbabf1096e9ab16de9048775c01",
+      "git_blob_sha": "eaf1a51012bb2c7760b3827ad27635379aed3926"
+    },
+    {
+      "path": "plugins/aaid-bdd/.claude-plugin/plugin.json",
+      "bytes": 492,
+      "sha256": "8f184c8c783a214cf50e29ad4548f42fc63e5681cd2722e8057869259feca621",
+      "git_blob_sha": "69f69386c63f3937c0f2e41e70283467372f606d"
+    },
+    {
+      "path": "plugins/aaid-bdd/skills/aaid-bdd-workflow/SKILL.md",
+      "bytes": 7285,
+      "sha256": "8c407df713e4cbecebcc8f9184f01c3a971b16b1c3da4d6c1d404b3b8e3b9576",
+      "git_blob_sha": "a84f76a1e018eb602427e0cc08686625c240894f"
+    },
+    {
+      "path": "plugins/aaid-tdd/.claude-plugin/plugin.json",
+      "bytes": 455,
+      "sha256": "a0d988be78cfb316846bc12cf75f475931f3c22c7819efa00e1393dc5a8227d2",
+      "git_blob_sha": "c9ad00a632b1505a38864adefb73b9489db3620a"
+    },
+    {
+      "path": "plugins/aaid-tdd/skills/aaid-tdd-workflow/SKILL.md",
+      "bytes": 5941,
+      "sha256": "6cbd5994d0c792b268706f5ded9f8fc52aa3aa6926ca0006e17c53712344dac0",
+      "git_blob_sha": "083b0bdaa82e299cd45b3d2d834a57f9b2047582"
+    },
+    {
+      "path": "rules/aaid/aaid-development-rules.mdc",
+      "bytes": 10139,
+      "sha256": "a3d27b94293da5e095d0d9e5db9f11a5512e3d18effff03a1aee838c7ed91310",
+      "git_blob_sha": "5d3e4aa4ae798531f026a834210dfc2845d9167c"
+    }
+  ]
+}
