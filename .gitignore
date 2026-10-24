@@ -16,6 +16,7 @@ uv-cache/
 security_layer/.hypothesis/
 security_layer/mutants/
 AGENTS.local.md
+.agents/local/
 
 # === Crosslink managed (do not edit between markers) ===
 # .crosslink/ — machine-local state (never commit)
