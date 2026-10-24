@@ -5,11 +5,14 @@ Category A (modified third-party methodology) provenance record.
 - **Repository**: https://github.com/dawid-dahl-umain/augmented-ai-development
 - **Ref**: `main` (default branch); **resolved pinned commit**: `54b4e5f0600f0d49131b74ffcb686876582ee20c`
   (tree `b0da7f19f18fb012df34ba43611a99482dbbc7ef`, commit author date `2026-08-30T19:51:46Z`)
-- **Consumed paths**: 12 paths — canonical manifest at
-  `openspec/changes/add-aaid-skill/evidence/source-manifest.md` (paths + git blob SHAs,
-  all 12 cross-checked against the pinned tree). Raw snapshot pin: the same commit,
-  held under `assets/upstream/` with original relative paths plus manifest/hashes
-  (added by task 3.2).
+- **Consumed paths**: 12 paths — machine-readable manifest with per-file git blob
+  SHAs, byte sizes and content hashes at `assets/upstream/MANIFEST.json` (cross-
+  checked against the pinned tree; regenerated only by an authorized
+  `check-upstream.sh --update`). Consumed upstream documents at the pinned commit:
+  the guide (`docs/aidd-workflow.md`), rules (`rules/aaid/aaid-development-rules.mdc`),
+  workflow diagram (`aaid-workflow-diagram.mermaid`), appendix A (four-layer
+  acceptance model), appendices B/D/E, both plugin workflow entrypoints
+  (`plugins/aaid-tdd/`, `plugins/aaid-bdd/`), and their `.claude-plugin/` manifests.
 - **Installed**: 2026-10-24
 <!-- BEGIN CHECK-STATUS: checker-maintained — rewrite only via an authorized
      `check-upstream.sh --update` run (design D6); lines inside this block are
@@ -45,6 +48,18 @@ A local user-provided draft (`~/Downloads/ADTT-SKILL.md`, a rendered-HTML export
 treated as a **user synthesis**: semantic influence only (four-layer framing, phase
 gates, divergence decisions D4). Nothing was copied from it and no redistribution
 rights are claimed from it.
+
+## Follow-up evaluator foundation
+
+A generalized `skill-eval` change is a confirmed separate follow-up (not part of this
+skill). Its foundation is `anthropics/skills` `skill-creator` — paired skill/baseline
+runs, evidence-based grading, benchmark mean ± standard deviation, variance analysis,
+and human review. Surveyed complements, none adopted here: `addyosmani/agent-skills`
+eval architecture, the `dietrichgebert/ponytail` agentic benchmark (its harness
+blocks agent Bash execution — unsuitable unchanged for behavioral trials), and the
+`cursor/plugins` pstack blinded-eval playbook. Fuller research notes on methodology,
+rights resolution, and evaluator sources live in the local-only `openspec/research/`
+tree (not committed with the hub).
 
 ## Upstream changes
 
