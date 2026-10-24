@@ -90,7 +90,7 @@ forms taken directly from those files:
   maintenance/freshness/self-improvement protocols, LESSONS_LEARNED/CHANGELOG/SOURCE/
   ATTRIBUTION files, route determination, and the Quality System's own formatting and
   edge-classification guidance.
-- **Upstream-derived** (adapted from the pinned paths, with D4 divergence where
+- **Upstream-derived** (adapted from the pinned paths, with the recorded four-layer divergence where
   recorded): phase structure and gate concepts, ZOMBIES guidance, dependency/mocking
   boundaries, and the four-layer acceptance model.
 - The frontmatter `license` string simplifies to "MIT" with a pointer to this file;

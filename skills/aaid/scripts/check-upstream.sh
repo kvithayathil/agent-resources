@@ -2,14 +2,14 @@
 # check-upstream.sh — compare the aaid skill's pinned upstream snapshot
 # (assets/upstream/) against the repository tip via `gh`.
 #
-# Modes (tasks 3.3/3.4, hardened per review 6.3 I1-I5):
+# Modes (hardened per adversarial review):
 #   check-only (no args): verdict "UNCHANGED" or "CHANGED" on stdout, exit 0;
 #     never writes anything under the skill root, never locks. If
 #     references/SOURCE.md contains a check-status BEGIN marker, the block
 #     must be COMPLETE (BEGIN, Integrated-pin line, END) or it is an ERROR —
 #     the manifest resolved_commit fallback applies ONLY when SOURCE.md or
 #     the whole block is absent.
-#   --update: authorized refresh (design D6). Takes an exclusive lock
+#   --update: authorized refresh. Takes an exclusive lock
 #     (.cache/update.lock via O_EXCL; another/stale lock is an ERROR), fetches
 #     every manifest path at tip into a PER-INVOCATION staging dir
 #     (.cache/staging-<pid>-<timestamp>), validates the fetched bytes against
@@ -26,13 +26,13 @@
 #     is never advanced by a fetch. Check-only never locks.
 #   "ERROR: ..." and nonzero exit on transport/parse/validation failure.
 #
-# Untrusted remote data discipline (design D6): everything `gh` returns is
+# Untrusted remote data discipline: everything `gh` returns is
 # DATA. The embedded python parser below never eval/source/executes remote
 # content, only passes decoded bytes through base64/JSON/sha plumbing.
-# Remote tip metadata is a single 40-char token or the run is rejected (I1);
+# Remote tip metadata is a single 40-char token or the run is rejected;
 # manifest paths are canonicalized ONCE at load and only the canonical
-# form is ever read or written (I2); reserved local policy paths (README.md,
-# MANIFEST.json at upstream root) are rejected (I2).
+# form is ever read or written; reserved local policy paths (README.md,
+# MANIFEST.json at upstream root) are rejected.
 set -u
 
 # Resolve skill root: script's ../.. unless AAID_SKILL_ROOT overrides.
@@ -80,7 +80,7 @@ root = Path(sys.argv[1])
 update_mode = sys.argv[2] == "1"
 manifest_path = root / "assets" / "upstream" / "MANIFEST.json"
 source_path = root / "references" / "SOURCE.md"
-# Per-invocation staging (I4): created lazily, exactly one per run, removed
+# Per-invocation staging: created lazily, exactly one per run, removed
 # by this run only; shared fixed-name staging would let concurrent runs
 # delete or interleave each other's staged files.
 cache_dir = root / ".cache"
@@ -89,14 +89,14 @@ lock_path = cache_dir / "update.lock"
 BEGIN = re.compile(r"<!-- BEGIN CHECK-STATUS.*?-->\n?", re.S)
 END = re.compile(r"<!-- END CHECK-STATUS -->")
 
-# Module-level run ownership state (I3/I4):
+# Module-level run ownership state:
 staging = None          # this run's own staging dir, once created
 lock_fd = None          # this run's own update.lock descriptor, once held
 retain_staging = False  # True once staging holds a COMPLETE fetched snapshot
 
 
 def sanitize(reason):
-    """D6: failure reasons are output — sanitize to ONE printable line.
+    """Failure reasons are output — sanitize to ONE printable line.
     Control characters (incl. newlines, ESC/ANSI) are removed, whitespace
     runs collapsed, and the line capped, so server-influenced stderr from gh
     can never spoof a verdict line or inject escapes into the verdict channel."""
@@ -105,7 +105,7 @@ def sanitize(reason):
 
 
 def fail(reason):
-    # Cleanup is strictly this run's own state (I4): only the staging dir
+    # Cleanup is strictly this run's own state: only the staging dir
     # THIS run created, only the lock THIS run holds. A failing check-only
     # run owns neither, so it can never remove an updater's staging.
     if staging is not None and staging.is_dir() and not retain_staging:
@@ -122,7 +122,7 @@ def fail(reason):
     message = str(reason)
     if retain_staging and staging is not None:
         # The staging copy is the recovery snapshot; point at it, sanitized
-        # together with the reason (I3).
+        # together with the reason.
         try:
             rel = staging.relative_to(root)
         except ValueError:
@@ -135,7 +135,7 @@ def fail(reason):
 
 
 def fresh(date, tip):
-    """Check-status lines emitted by an authorized refresh (D6):
+    """Check-status lines emitted by an authorized refresh:
     machine-updatable block contents, integrated pin preserved separately."""
     # NOTE: date/is None-safe; tip is the validated fetched commit, never the pin.
     return (f"- Last successful check: {date}\n"
@@ -143,7 +143,7 @@ def fresh(date, tip):
 
 
 def atomic_write(dest, data):
-    """Cutover discipline (I3 + round-2 blocker 2): every live-file write
+    """Cutover discipline: every live-file write
     replaces the whole file via a UNIQUE UNPREDICTABLE temp file created
     with O_CREAT|O_EXCL (and O_NOFOLLOW where available, so a planted
     symlink at the temp path cannot redirect the write) in the SAME
@@ -184,7 +184,7 @@ def main():
     global staging, lock_fd, retain_staging
 
     if update_mode:
-        # Exclusive update lock (I4); read-only-other... no-lock-check-only.
+        # Exclusive update lock; read-only-other... no-lock-check-only.
         # Simplest correct protocol: O_EXCL create; a second updater (or a
         # stale lock from a killed run) is a hard ERROR with a manual-removal
         # pointer, never a silent concurrent run.
@@ -209,7 +209,7 @@ def main():
         # remaining unexpected failures route through main()'s caller.
         fail("invalid manifest JSON in " + str(manifest_path))
 
-    # Path canonicalization + containment (design D6 "unsafe paths"; I2).
+    # Path canonicalization + containment (unsafe-path policy).
     # Every manifest entry's path is validated and CANONICALIZED before any
     # read or write ever uses it; ONLY the canonical in-upstream relative
     # form is stored back and used by every later operation (local snapshot
@@ -219,7 +219,7 @@ def main():
     # stages and cuts over at its canonical location inside the snapshot —
     # never via an alias spelling that staging would resolve elsewhere.
     # Reserved local policy paths are rejected outright.
-    #(c) Reserved local policy protection (6.3 I2 + round-2 blocker 1).
+    #(c) Reserved local policy protection.
     #reserved_paths names the policy files AT THE UPSTREAM ROOT. Root-level
     #collisions are rejected CASE-INSENSITIVELY (a manifest entry like
     #`readme.md` addresses the local README.md on case-insensitive
@@ -244,7 +244,7 @@ def main():
         # symlink swapped in AT a live destination is a manipulated-local-
         # layout case that os.replace handles safely (it replaces the entry,
         # not the target) — resolving it here would misread the asset as an
-        # escape and break the round-2 blocker-2 contract.
+        # escape and break the containment contract.
         parent_resolved = (upstream_dir / p.parent).resolve()
         if parent_resolved != upstream_dir and upstream_dir not in parent_resolved.parents:
             fail("unsafe manifest path (escapes assets/upstream/): " + raw)
@@ -325,7 +325,7 @@ def main():
     if not tip_resp.get("sha"):
         fail(f"tip commit response declared no sha for branch {branch}")
     tip = tip_resp["sha"]
-    # I1: the tip sha is remote metadata that is INTERPOLATED into output
+    # The tip sha is remote metadata that is INTERPOLATED into output
     # (verdict lines, SOURCE block). Truthiness is not enough: require a
     # strict single-token sha (16-64 alphanumeric chars — real commits are
     # exactly 40 hex) so newlines/backticks/ANSI in the response can never
@@ -343,7 +343,7 @@ def main():
             fail("local snapshot mismatch for " + path)
 
     if not update_mode:
-        # Verdict baseline is the INTEGRATED pin (reviewed content, D6), read
+        # Verdict baseline is the INTEGRATED pin (reviewed content), read
         # from the SOURCE.md check-status block, NOT the manifest's
         # resolved_commit: after an authorized --update the manifest legitimately
         # holds fetched-but-unreviewed content, and a baseline on it would
@@ -352,7 +352,7 @@ def main():
         # (older fixtures/pre-block snapshots, where manifest pin ==
         # integrated pin anyway). A source file that HAS the BEGIN marker but
         # is malformed (missing/broken END, missing Integrated-pin line) is a
-        # runtime-produced corruption state (6.3 I5) and MUST fail loudly —
+        # runtime-produced corruption state and MUST fail loudly —
         # silently falling back would report a false UNCHANGED after an
         # interrupted cutover.
         src_text = None
@@ -360,7 +360,7 @@ def main():
             src_text = source_path.read_text(encoding="utf-8")
         baseline = manifest["resolved_commit"]
         if src_text is not None:
-            # Marker-trace discipline (6.3 I5 + round-2 blocker 3): a
+            # Marker-trace discipline: a
             # TRUNCATED marker attempt like `<!-- BEGIN CHECK-STATUS` (file
             # cut mid-write) does not satisfy the strict BEGIN regex, but it
             # is NOT an absent block: any line containing the substring
@@ -403,7 +403,7 @@ def main():
         print("UNCHANGED")
         sys.exit(0)
 
-    # ---- authorized refresh (--update), design D6 ----
+    # ---- authorized refresh (--update) ----
     # Stage the COMPLETE tip snapshot first; any failure before this point is
     # a fetch-phase failure: fail() removes THIS run's staging, the tracked
     # files and SOURCE.md stay untouched (pinned cleanup semantics).
@@ -417,7 +417,7 @@ def main():
     for entry in manifest["files"]:
         path = entry["path"]
         data = content_bytes(path, tip)
-        # Staging writes use ONLY the canonical path (I2): by construction it
+        # Staging writes use ONLY the canonical path: by construction it
         # cannot escape this run's staging dir.
         dest = staging / path
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -463,7 +463,7 @@ def main():
     pin_entry = "\n".join(lines[pin_start:])
     new_block = fresh(time.strftime("%Y-%m-%d", time.gmtime()), tip) + pin_entry
 
-    # Cutover (I3): temp-file + atomic-rename for EVERY live file, ordered so
+    # Cutover: temp-file + atomic-rename for EVERY live file, ordered so
     # the crash window is narrow and every partial state is detectable —
     # raw snapshot files first, MANIFEST.json second, SOURCE.md block last.
     # Crash-window table (accurate, supersedes any blanket "next check is
@@ -505,7 +505,7 @@ try:
     main()
 except SystemExit:
     raise
-except Exception as exc:  # noqa: BLE001 - D6: never escape a raw traceback
+except Exception as exc:  # noqa: BLE001 - never escape a raw traceback
     # Route any unexpected failure (including cutover I/O failures) to the
     # sanitized ERROR verdict with nonzero exit. fail() retains staging when
     # a complete snapshot is staged and removes only this run's own state;

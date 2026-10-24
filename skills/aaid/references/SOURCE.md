@@ -24,12 +24,12 @@ Category A (modified third-party methodology) provenance record.
 - Fetched commit: none
 - Integrated pin: `54b4e5f0600f0d49131b74ffcb686876582ee20c`
   (tree `b0da7f19f18fb012df34ba43611a99482dbbc7ef`, commit author date `2026-08-30T19:51:46Z`)
-  — the reviewed/integrated content only; never advanced by a fetch (D6).
+  — the reviewed/integrated content only; never advanced by a fetch.
 <!-- END CHECK-STATUS -->
 - **Provider**: manual
 - **Lock entry**: `skills/skills-lock.json` — present; the canonical `aaid` entry (ref
   `54b4e5f0600f0d49131b74ffcb686876582ee20c`, source_type `gh-api`, provider `manual`,
-  installed_at `2026-10-24`, remote_path `.`) was added in task 3.2 and this record is
+  installed_at `2026-10-24`, remote_path `.`) was added alongside this record and is
   kept consistent with it.
 
 ## Fetched vs integrated pins
@@ -37,7 +37,7 @@ Category A (modified third-party methodology) provenance record.
 Initially the fetched pin and the integrated pin are equal: both are the resolved
 commit `54b4e5f0600f0d49131b74ffcb686876582ee20c`, because all consumed content was
 reviewed and integrated during the change that created this skill. Thereafter the
-distinction holds per the change design (D6): the **lock file pin represents
+distinction holds per the provenance policy: the **lock file pin represents
 reviewed/integrated content only**, never merely the latest remote fetch. A fresh
 fetch that is not yet semantically reviewed remains "unreviewed fetched" and keeps
 being flagged by subsequent checks until a human reviews and integrates it.
@@ -46,7 +46,7 @@ being flagged by subsequent checks until a human reviews and integrates it.
 
 A local user-provided draft (`~/Downloads/ADTT-SKILL.md`, a rendered-HTML export) was
 treated as a **user synthesis**: semantic influence only (four-layer framing, phase
-gates, divergence decisions D4). Nothing was copied from it and no redistribution
+gates, the recorded divergence decisions). Nothing was copied from it and no redistribution
 rights are claimed from it.
 
 ## Follow-up evaluator foundation
@@ -64,5 +64,5 @@ tree (not committed with the hub).
 ## Upstream changes
 
 This record's check metadata is refreshed only by an authorized `--update` run of the
-skill's checker (D6). Check-only runs leave this file untouched. Failed or partial
+skill's checker. Check-only runs leave this file untouched. Failed or partial
 fetches preserve the last good data and never claim freshness.

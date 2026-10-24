@@ -1,6 +1,6 @@
 """RED test for skills/aaid/scripts/check-upstream.sh — check-only UNCHANGED.
 
-Strict TDD cycle 1 (task 3.3): one fixture-driven failing test for the
+Fixture-driven failing test for the
 unchanged/check-only behavior. Mock transport via a fake `gh` on PATH; no
 live network, no live writes.
 
@@ -10,7 +10,7 @@ Contract the tests define for GREEN:
   anything under the skill root.
 - Skill root resolution: the script's own ../../ by default, overridable
   via env AAID_SKILL_ROOT (the tests point it at a disposable fixture).
-- Transport: `gh` resolved via PATH. Expected calls (per design D6 and
+- Transport: `gh` resolved via PATH. Expected calls (per the provenance policy and
   the verified API facts in source-manifest.md):
     gh api --method GET "repos/<repo>/commits/<default_branch>"
     gh api --method GET "repos/<repo>/contents/<path>" -f ref=<sha>
@@ -26,7 +26,7 @@ Contract the tests define for GREEN:
   - "CHANGED" when any path differs at the tip (exit 0).
   - "ERROR: <short reason>" and nonzero exit on transport/parse/validation
     failure — NOT tested here.
-- --update (task 3.4, cycle C2): authorized refresh — staged fetch of all
+- --update: authorized refresh — staged fetch of all
   manifest paths at tip, atomic cutover of the raw files + MANIFEST.json,
   and refresh of the checker-maintained check-status block in
   references/SOURCE.md; integrated pin and adapted files untouched.
@@ -319,7 +319,7 @@ def test_update_refreshes_snapshot_and_metadata(tmp_path: Path) -> None:
 
 
 def test_check_only_idempotent(tmp_path: Path) -> None:
-    """Idempotence (D6 / aaid-maintenance spec): after one authorized --update
+    """Idempotence (per the maintenance spec): after one authorized --update
     over a successfully-integrated fixture (tip content == pinned content,
     tip sha == pin), repeated check-only runs report UNCHANGED with exit 0 and
     leave the fixture root byte-identical — no writes, no `.cache` residue.
@@ -574,7 +574,7 @@ def test_update_preserves_adapted_skill_and_lessons(tmp_path: Path) -> None:
         "\n"
         "## Adaptations relative to upstream\n"
         "\n"
-        "- Four-layer framing kept; divergence decisions D1-D4 applied.\n"
+        "- Four-layer framing kept; the recorded divergence decisions applied.\n"
         "- Checks fail closed; fetches staged; pins never self-advance.\n"
         "\n"
         "## References\n"
@@ -681,7 +681,7 @@ def test_update_preserves_adapted_skill_and_lessons(tmp_path: Path) -> None:
     # Full-root diff is EXACTLY the allowed set (no other writes anywhere).
     gone = set(before) - set(after)
     added = set(after) - set(before)
-    # changed over the UNION of keys (F5 review nit: before-keys-or-after-keys
+    # changed over the UNION of keys (review nit: before-keys-or-after-keys
     # only would let a stray new/deleted file escape the diff).
     changed_paths = {k for k in set(before) | set(after) if before.get(k) != after.get(k)}
     assert changed_paths == allowed - gone, (
@@ -1115,7 +1115,7 @@ def test_missing_tools_and_assets(tmp_path: Path, variant: str) -> None:
     root, upstream, source, env = _failure_fixture(tmp_path)
     _make_fake_gh(tmp_path / "bin", upstream)  # healthy tip mock in every variant
     if variant == "no_gh_binary":
-        # F4-review hardening fix (folded into F5): the PATH is SANDBOXED to
+        # Hardening fix: the PATH is SANDBOXED to
         # an empty bin dir ONLY — the system PATH is not kept, so on a
         # gh-equipped host the pre-check verifiably fires and the checker can
         # never reach the real gh. The actual emitted reason is pinned below.
@@ -1282,7 +1282,7 @@ def test_paths_with_spaces_end_to_end(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Cycle F6 — unsafe manifest paths + malicious upstream content (design D6:
+# Unsafe manifest paths + malicious upstream content (
 # "unsafe paths" discipline; upstream content is bytes-only data).
 # ---------------------------------------------------------------------------
 
@@ -1360,7 +1360,7 @@ def _unsafe_path_fixture(tmp_path: Path, unsafe_path: str) -> tuple[Path, Path, 
 
 @pytest.mark.parametrize("variant", list(UNSAFE_PATHS), ids=list(UNSAFE_PATHS))
 def test_unsafe_manifest_paths_rejected(tmp_path: Path, variant: str) -> None:
-    """Design D6 'unsafe paths': a TAMPERED local manifest whose file-entry
+    """The provenance policy's unsafe-path rule: a TAMPERED local manifest whose file-entry
     path escapes the snapshot dir (relative `../..` escape or an absolute
     path) must be rejected at LOAD time — before any read or write ever uses
     the path. Both modes (check-only AND --update) must exit nonzero with a
@@ -1567,7 +1567,7 @@ def test_malicious_upstream_content_is_inert(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Cycle 3.6b — real-run regression pins (task 3.6). The 3.6 real run exposed
+# Real-run regression pins. The first real upstream run exposed
 # three bugs no fixture caught because tests always set AAID_SKILL_ROOT and
 # use bare owner/repo manifests. This test pins the fixed behavior post-hoc
 # (DISCLOSED: CHARACTERIZATION pins, fixes already applied before the test).
@@ -1682,15 +1682,15 @@ def _real_shape_fixture(tmp_path: Path) -> tuple[Path, Path, Path, dict[str, str
 
 
 REAL_SHAPES = {
-    "url_repository": "manifest repository is a full https URL (3.6 fix)",
-    "newline_base64": "fake gh serves GitHub-style 60-char newline-wrapped base64 (3.6 fix)",
-    "default_root": "run with no AAID_SKILL_ROOT; checker copied into root/scripts resolves its own ../ (3.6 fix)",
+    "url_repository": "manifest repository is a full https URL",
+    "newline_base64": "fake gh serves GitHub-style 60-char newline-wrapped base64",
+    "default_root": "run with no AAID_SKILL_ROOT; checker copied into root/scripts resolves its own ../",
 }
 
 
 @pytest.mark.parametrize("shape", list(REAL_SHAPES), ids=list(REAL_SHAPES))
 def test_real_world_shape_regressions(tmp_path: Path, shape: str) -> None:
-    """CHARACTERIZATION (post-hoc pins of the 3.6 real-run fixes). Check-only
+    """CHARACTERIZATION (post-hoc pins of the real-run fixes). Check-only
     over a pin==tip fixture shaped like the real repository must report
     UNCHANGED, exit 0, and write nothing. (a) a URL-form manifest repository
     is normalized for gh api (every logged call hits
@@ -1750,9 +1750,9 @@ def test_real_world_shape_regressions(tmp_path: Path, shape: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Cycle 6.4 — review-6.3 adversarial hardening fixes I1-I5: regression tests.
+# Adversarial-hardening regression tests.
 # Each test names the finding it pins. Behavior-preserving for the 33 legacy
-# semantics except where disclosed in the 6.3 hardening report.
+# semantics except where disclosed in the hardening review.
 # ---------------------------------------------------------------------------
 
 def _harden_fixture(tmp_path: Path) -> tuple[Path, Path, Path, Path, dict[str, str]]:
@@ -1774,7 +1774,7 @@ def _run(root: Path, env: dict[str, str], *args: str) -> subprocess.CompletedPro
     )
 
 
-# --- I1: malicious remote tip metadata must never reach output ----------
+# --- malicious remote tip metadata must never reach output --------------
 
 def _make_tip_sha_gh(bin_dir: Path, upstream: Path, tip_sha: str) -> None:
     """Fake `gh` answering the commits call with an ATTACKER-CONTROLLED sha and
@@ -1807,7 +1807,7 @@ def _make_tip_sha_gh(bin_dir: Path, upstream: Path, tip_sha: str) -> None:
 
 
 def test_i1_malicious_tip_metadata_rejected_on_success_paths(tmp_path: Path) -> None:
-    """(6.3 I1, check-only): remote tip metadata containing a newline, a forged
+    """(check-only): remote tip metadata containing a newline, a forged
     verdict line and an ANSI escape — served on an otherwise HEALTHY transport
     path — must yield ERROR, never a verdict line, and no writes (SOURCE.md
     block untouched, no .cache residue). Pinned contract change disclosed:
@@ -1833,7 +1833,7 @@ def test_i1_malicious_tip_metadata_rejected_on_success_paths(tmp_path: Path) -> 
 
 
 def test_i1_malicious_tip_metadata_update_rejected(tmp_path: Path) -> None:
-    """(6.3 I1, --update): the same malicious tip sha must fail BEFORE any
+    """(--update): the same malicious tip sha must fail BEFORE any
     staging/cutover: ERROR, last-good root byte-identical, no staging, and the
     lock removed (a failed run cannot wedge .cache/update.lock)."""
     root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
@@ -1847,7 +1847,7 @@ def test_i1_malicious_tip_metadata_update_rejected(tmp_path: Path) -> None:
     assert not (root / ".cache" / "update.lock").exists(), "lock wedged by failed run"
 
 
-# --- I2: manifest path canonicalization; staging never aliases the live tree ---
+# --- manifest path canonicalization; staging never aliases the live tree ---
 
 ALIAS_PATH = "../../assets/upstream/docs/guide.md"
 
@@ -1941,7 +1941,7 @@ def _alias_fixture(tmp_path: Path):
 
 
 def test_i2_alias_escape_cannot_reach_live_tree(tmp_path: Path) -> None:
-    """(6.3 I2, staged-fetch failure): manifest entry
+    """(staged-fetch failure): manifest entry
     `../../assets/upstream/docs/guide.md` (self-consistent hashes, resolves
     inside upstream) with a SECOND-path fetch failure. The staging write for
     the alias path must land inside the PER-INVOCATION staging dir only — the
@@ -1974,7 +1974,7 @@ def test_i2_alias_escape_cannot_reach_live_tree(tmp_path: Path) -> None:
 
 
 def test_i2_alias_canonical_form_used_end_to_end(tmp_path: Path) -> None:
-    """(6.3 I2, successful --update): with the same alias manifest and a clean
+    """(successful --update): with the same alias manifest and a clean
     tip, the update succeeds with `UPDATED`; the cutover writes the LIVE file
     via its canonical path; the regenerated manifest stores CANONICAL paths
     (the alias spelling is gone); no staging residue; the tmp tree outside
@@ -2008,7 +2008,7 @@ def test_i2_alias_canonical_form_used_end_to_end(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("reserved", ["README.md", "MANIFEST.json"])
 def test_i2_reserved_policy_paths_rejected(tmp_path: Path, reserved: str) -> None:
-    """(6.3 I2, reserved paths): a tampered manifest entry whose CANONICAL
+    """(reserved paths): a tampered manifest entry whose CANONICAL
     path is a local policy file at the upstream root (README.md or
     MANIFEST.json itself) must be rejected in BOTH modes — never staged,
     fetched, or cutover-written over the local policy bytes."""
@@ -2041,10 +2041,10 @@ def test_i2_reserved_policy_paths_rejected(tmp_path: Path, reserved: str) -> Non
             )
 
 
-# --- I3: detectable interruption + retained staging on cutover failure ---
+# --- detectable interruption + retained staging on cutover failure ---
 
 def test_i3_mid_cutover_state_is_detectable_error(tmp_path: Path) -> None:
-    """(6.3 I3, corruption detectability): simulate death between cutover
+    """(corruption detectability): simulate death between cutover
     steps — raw files advanced to tip bytes while MANIFEST.json keeps the
     old pin hashes. The next check-only run must report ERROR (local
     snapshot mismatch), NEVER UNCHANGED, with no writes."""
@@ -2062,7 +2062,7 @@ def test_i3_mid_cutover_state_is_detectable_error(tmp_path: Path) -> None:
 
 
 def test_i3_cutover_failure_retains_complete_staging(tmp_path: Path) -> None:
-    """(6.3 I3, cutover failure): SOURCE.md made read-only during --update so
+    """(cutover failure): SOURCE.md made read-only during --update so
     the final write fails. Must yield ERROR (staging retained noted in the
     reason), NOT delete staging: the per-invocation staging dir must still
     hold the COMPLETE fetched tip snapshot (raw files + MANIFEST.json). The
@@ -2105,10 +2105,10 @@ def test_i3_cutover_failure_retains_complete_staging(tmp_path: Path) -> None:
     assert not (root / ".cache" / "update.lock").exists(), "lock wedged after failed cutover"
 
 
-# --- I4: per-invocation staging + exclusive update lock ------------------
+# --- per-invocation staging + exclusive update lock ------------------
 
 def test_i4_third_lock_blocks_update(tmp_path: Path) -> None:
-    """(6.3 I4, lock): a pre-existing .cache/update.lock (another updater or
+    """(lock): a pre-existing .cache/update.lock (another updater or
     a stale lock) must make --update ERROR 'another update...' without
     staging anything or taking over the state file directory."""
     root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
@@ -2127,7 +2127,7 @@ def test_i4_third_lock_blocks_update(tmp_path: Path) -> None:
 
 
 def test_i4_failing_check_only_spares_foreign_staging(tmp_path: Path) -> None:
-    """(6.3 I4, shared-staging cleanup): pre-create a FOREIGN staging dir (a
+    """(shared-staging cleanup): pre-create a FOREIGN staging dir (a
     concurrent updater's) with a sentinel, then run a FAILING check-only. It
     owns no staging: the sentinel dir must survive intact byte-for-byte."""
     root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
@@ -2145,7 +2145,7 @@ def test_i4_failing_check_only_spares_foreign_staging(tmp_path: Path) -> None:
     assert (sentinel / "guide.md").read_bytes() == b"foreign staged bytes\n", "sentinel disturbed"
 
 
-# --- I5: check-only validates the check-status block ---------------------
+# --- check-only validates the check-status block ---------------------
 
 BLOCK_AFFIX = "<!-- BEGIN CHECK-STATUS: checker-maintained -->\n- Last successful check: 2026-10-23\n-Fetched commit\n"
 
@@ -2178,14 +2178,14 @@ I5_MUTATIONS = ("pin_removed", "end_removed", "absent_source")
 
 @pytest.mark.parametrize("mutation", I5_MUTATIONS, ids=I5_MUTATIONS)
 def test_i5_corrupted_block_fallback_contract(tmp_path: Path, mutation: str) -> None:
-    """(6.3 I5): (a) SOURCE block with BEGIN marker but the Integrated-pin
+    """(corrupt check-status block): (a) SOURCE block with BEGIN marker but the Integrated-pin
     line removed, (b) truncated block with no END marker — check-only must
     ERROR 'malformed check-status block', never silently fall back to the
     manifest resolved_commit (which would read pin==tip and report a false
     UNCHANGED after an interrupted cutover). Pinned contract change
     disclosed: both corrupt states previously degraded to UNCHANGED.
     (c) ENTIRELY ABSENT SOURCE.md keeps old fallback semantics: pin==tip
-    fixture yields UNCHANGED (C1 fixture equivalent)."""
+    fixture yields UNCHANGED (guard-rails fixture equivalent)."""
     root, upstream, source, env = _i5_fixture(tmp_path, mutation)
     before = _snapshot(root)
     result = _run(root, env)
@@ -2202,15 +2202,15 @@ def test_i5_corrupted_block_fallback_contract(tmp_path: Path, mutation: str) -> 
 
 
 # ---------------------------------------------------------------------------
-# Cycle 6.5 — hardening round 2: adversarial re-review blockers 1-3.
+# Adversarial-hardening round 2: re-review fixes.
 # ---------------------------------------------------------------------------
 
 RESERVED_SPELLINGS = ("readme.md", "Manifest.json", "Readme.MD")
 
 
 @pytest.mark.parametrize("spelling", RESERVED_SPELLINGS, ids=RESERVED_SPELLINGS)
-def test_blocker1_reserved_root_case_insensitive(tmp_path: Path, spelling: str) -> None:
-    """(round 2 blocker 1, 6.3 I2): root-level reserved paths are rejected
+def test_reserved_root_case_insensitive(tmp_path: Path, spelling: str) -> None:
+    """(reserved paths, root-level casefold): root-level reserved paths are rejected
     CASE-INSENSITIVELY — a tampered manifest entry spelled `readme.md`,
     `Manifest.json` or `Readme.MD` addresses the local README.md /
     MANIFEST.json at the upstream root on case-insensitive filesystems
@@ -2218,7 +2218,7 @@ def test_blocker1_reserved_root_case_insensitive(tmp_path: Path, spelling: str) 
     CHOICE (documented in the checker): the reserved concern is overwriting
     local POLICY at the upstream ROOT, so only root-level casefolded
     collisions are rejected — a nested `docs/readme.md` stays allowed
-    (pinned by test_blocker1_nested_readme_allowed)."""
+    (pinned by test_nested_readme_allowed)."""
     root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
     readme_bytes = b"reserved policy readme bytes\n"
     (upstream / "README.md").write_bytes(readme_bytes)
@@ -2245,8 +2245,8 @@ def test_blocker1_reserved_root_case_insensitive(tmp_path: Path, spelling: str) 
         )
 
 
-def test_blocker1_nested_readme_allowed(tmp_path: Path) -> None:
-    """(round 2 blocker 1, deliberate choice): a NESTED upstream asset
+def test_nested_readme_allowed(tmp_path: Path) -> None:
+    """(deliberate choice): a NESTED upstream asset
     `docs/readme.md` (self-consistent hashes, served by the fake transport)
     is NOT reserved — only upstream-root policy files are — so check-only
     still reports UNCHANGED and --update refreshes it normally."""
@@ -2277,8 +2277,8 @@ def test_blocker1_nested_readme_allowed(tmp_path: Path) -> None:
     assert (upstream / "docs/readme.md").read_bytes() == b"nested upstream readme changed\n"
 
 
-def test_blocker2_dest_symlink_is_replaced_not_followed(tmp_path: Path) -> None:
-    """(round 2 blocker 2a, 6.3 I3): a SYMLINK planted at a live destination
+def test_dest_symlink_is_replaced_not_followed(tmp_path: Path) -> None:
+    """(destination symlink): a SYMLINK planted at a live destination
     path must not redirect the cutover write: --update ends with the dest as
     a REGULAR file holding the tip bytes, and the symlink's TARGET keeps its
     old bytes untouched (os.replace replaces the entry, not the target)."""
@@ -2310,8 +2310,8 @@ def test_blocker2_dest_symlink_is_replaced_not_followed(tmp_path: Path) -> None:
     )
 
 
-def test_blocker2_no_symlinks_in_upstream_after_update(tmp_path: Path) -> None:
-    """(round 2 blocker 2b): after a normal --update, EVERY file under
+def test_no_symlinks_in_upstream_after_update(tmp_path: Path) -> None:
+    """(symlink check): after a normal --update, EVERY file under
     assets/upstream is a REGULAR file (no symlink anywhere in the snapshot
     — a planted temp-path symlink cannot survive as a live entry), staged
     bytes hash correctly, and a pre-planted symlink forest OUTSIDE the
@@ -2350,8 +2350,8 @@ def test_blocker2_no_symlinks_in_upstream_after_update(tmp_path: Path) -> None:
     assert not (upstream / "docs/guide.md").is_symlink()
 
 
-def test_blocker3_truncated_begin_marker_is_error(tmp_path: Path) -> None:
-    """(round 2 blocker 3, 6.3 I5): SOURCE.md cut mid-write so its LAST line
+def test_truncated_begin_marker_is_error(tmp_path: Path) -> None:
+    """(truncated marker): SOURCE.md cut mid-write so its LAST line
     is a truncated `<!-- BEGIN CHECK-STATUS` (no full marker, no END, no
     pin). The strict BEGIN regex does not match it, but the loose marker
     trace discipline must fail LOUDLY: check-only reports ERROR "malformed
@@ -2376,8 +2376,8 @@ def test_blocker3_truncated_begin_marker_is_error(tmp_path: Path) -> None:
     assert _snapshot(root) == before, "the erroring run wrote to the fixture root"
 
 
-def test_blocker3_marker_trace_scope(tmp_path: Path) -> None:
-    """(round 2 blocker 3, documented scope): the loose trace matches only
+def test_marker_trace_scope(tmp_path: Path) -> None:
+    """(truncated-marker scope): the loose trace matches only
     lines containing 'BEGIN CHECK-STATUS'. Prose checks (like a sentence in
     these docstrings) do NOT trip it; a SOURCE.md with no marker substring
     and no block keeps old absent-block semantics: UNCHANGED in the

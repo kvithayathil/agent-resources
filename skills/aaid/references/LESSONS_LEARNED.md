@@ -20,10 +20,11 @@
  *(Entries below follow the format above.)*
 
 ### [2026-10-24] Passive gate prohibition failed to prevent mid-session crossing
-- **Context**: Block-4 behavioral trials (M5 pause/resume, M6 override) of the TDD
-  workflow: in both, the agent crossed a pending `AWAITING` gate mid-session —
-  GREEN implementation+run before the scripted re-approval (M5), and implementation
-  written before the RED test existed (M6). Both were self-caught, reverted with
+- **Context**: Behavioral trials of the
+  TDD workflow (pause/resume and override scenarios): in both, the agent crossed
+  a pending `AWAITING` gate mid-session — GREEN implementation+run before the
+  scripted re-approval in one scenario, and implementation
+  written before the RED test existed in the other. Both were self-caught, reverted with
   `git checkout --`, re-run in the correct order, and disclosed; the recorded state
   machines ended clean. The gap was orchestration-layer drift, caught only by the
   agent's own after-the-fact honesty machinery, not by the rule text itself.
@@ -33,9 +34,7 @@
   implementation, re-read the state summary and verify the prior gate's approval
   is recorded in this session; momentum or existing code never substitutes.
 - **Validations**: 1
-- **Evidence**: M5 breach at
-  `openspec/changes/add-aaid-skill/evidence/trials/trial-4.1-M5.md` line 109; M6
-  breach at `evidence/trials/trial-4.1-M6.md` line 91 (block-4 grading:
-  `evidence/reviews/grading-4.md`, § "M5/M6 adjudication"). Both files
-  privacy-redacted disposable-workspace transcripts; no production credentials.
+- **Evidence**: Both gate-crossings are retained as
+  behavioral-trial transcripts in the local, untracked change-evidence tree.
+  Privacy-redacted disposable-workspace transcripts; no production credentials.
   *(In progress at entry time; 1.0.1 amendment is the applied lesson.)*
