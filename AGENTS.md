@@ -8,6 +8,7 @@ Skills management for AI coding agents following the [AgentSkills](https://agent
 - Skill catalog: `skills/SKILL_INDEX.yaml` (auto-generated, run `just sync` to rebuild)
 - Provenance: `skills/skills-lock.json`
 - Skill format: `docs/skill-format.md`
+- Commit convention: `docs/agent/git-commit-convention.md`
 - Project knowledge: `crosslink knowledge list` (search: `crosslink knowledge search <query>`)
 - Enhancement proposals: `docs/enhancements/` (see `_template.md` for spec)
 - Research notes: `openspec/research/README.md` (local-only tree — not committed with the repo)
@@ -19,6 +20,7 @@ Skills management for AI coding agents following the [AgentSkills](https://agent
 - **Skills** may live as `skills/<name>/SKILL.md` or `skills/<group>/<name>/SKILL.md` (recursive scanning).
 - **Self-learning skills** (vdd, vsdd, security, aaid): agent may modify `references/` files based on real-world evidence.
 - **Self-updating skills** (security, aaid): run freshness checks when `last-reviewed` is >7 days old (or on explicit request or relevant upstream incident). See SKILL.md for update commands. These skills may ship their own upstream checker invoked directly (no justfile recipe; e.g. `skills/<skill>/scripts/check-upstream.sh`) — see each skill's SKILL.md/SOURCE.md for exact usage and last-check state.
+- **Commit messages**: follow [docs/agent/git-commit-convention.md](docs/agent/git-commit-convention.md). Key rule: never reference internal tooling names, agent IDs, issue numbers, or lock operations in commit messages or CHANGELOG.md entries.
 
 ## Auto-Update
 
