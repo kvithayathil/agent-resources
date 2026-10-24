@@ -57,6 +57,12 @@ scripts/
 └── security-sweep.sh         # Monthly security sweep (just sweep)
 ```
 
+## Installed Authoritative Skills
+
+Beyond single-purpose utilities, this hub carries authored methodology skills:
+
+- **aaid** — Augmented AI Development: context → planning → RED/GREEN/REFACTOR with human STOP gates after every phase → four-layer acceptance testing (executable spec / business DSL / protocol driver / real SUT). Provenance is pinned to a verified upstream commit (see `skills/aaid/references/SOURCE.md` and `skills/skills-lock.json`); `skills/aaid/scripts/check-upstream.sh` performs check-only or staged `--update` upstream freshness checks (verified commit comparison, never remote-instruction execution). Scope limits: `just validate aaid` is format validation only; methodology review is phase-local reference checklists; standalone suite audits and a generalized skill-eval evaluator are deliberately deferred to separate changes.
+
 ## Adding a Skill
 
 ```bash

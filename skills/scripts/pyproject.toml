@@ -44,7 +44,16 @@ select = [
 ignore = ["S603", "S101"]  # S603: subprocess; S101: assert in tests
 
 [tool.ruff.lint.per-file-ignores]
-"test_*.py" = ["S101", "TC003"]  # assert ok in tests; Path used at runtime
+"test_*.py" = [
+    "S101",
+    "TC003",  # assert ok in tests; Path used at runtime
+    "S607",   # partial-path on purpose: exercises `bash scripts/...` resolver
+    "S324",   # sha1 on purpose: mirrors upstream manifest hash fields
+    "E501",   # long literals/commands kept verbatim for debuggability
+    "RUF059", # topical unpack of parse_output records is self-documenting
+    "RUF005",
+    "UP012",
+]
 
 [tool.ruff.lint.isort]
 known-first-party = ["sync_index"]

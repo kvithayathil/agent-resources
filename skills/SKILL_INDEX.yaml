@@ -5,6 +5,32 @@
 # Source of truth: SKILL.md frontmatter + skills-lock.json
 
 skills:
+- name: aaid
+  description: 'Augmented AI Development (AAID): a human-gated, evidence-driven development methodology. What it covers: context and planning from approved behavioral scenarios or technical contracts, incremental
+    RED → GREEN → REFACTOR TDD with a mandatory human review stop after every phase, and four-layer acceptance testing (executable spec → business DSL → protocol driver → production-like SUT). When to use:
+    any development task needing this methodology, including unit TDD, acceptance/ATDD testing, technical contract testing, and presentation validation with explicit criteria.'
+  path: aaid
+  tags:
+  - development
+  - testing
+  - tdd
+  - methodology
+  license: MIT — see references/ATTRIBUTION.md for the bundled attribution record
+  metadata:
+    version: 1.0.1
+    living: 'true'
+    self-learning: 'true'
+    self-updating: 'true'
+    update-policy: evolve-on-evidence
+    last-reviewed: '2026-10-24'
+  version: 1.0.1
+  token_estimate: 1686
+  source:
+    source: https://github.com/dawid-dahl-umain/augmented-ai-development
+    ref: 54b4e5f0600f0d49131b74ffcb686876582ee20c
+    source_type: gh-api
+    provider: manual
+    installed_at: '2026-10-24'
 - name: android-compose-ui
   description: 'Compose UI patterns for Android/KMP - stability, recomposition, side effects, lazy lists, animations, previews, accessibility, modifier extensions, and design system composables. Use this
     skill whenever writing or reviewing composables, optimizing recomposition, adding animations, creating previews, writing custom modifiers, structuring a design system, or making any Compose UI decision
@@ -709,6 +735,7 @@ tag_index:
   design-tokens:
   - design-md
   development:
+  - aaid
   - vdd
   devops:
   - modern-git-patterns
@@ -735,6 +762,7 @@ tag_index:
   maintenance:
   - provenance-tracking
   methodology:
+  - aaid
   - vdd
   - vsdd
   owasp:
@@ -787,7 +815,10 @@ tag_index:
   - design-md
   system-design:
   - vsdd
+  tdd:
+  - aaid
   testing:
+  - aaid
   - qa
   - vdd
   threat-model:

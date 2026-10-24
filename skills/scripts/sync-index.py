@@ -309,7 +309,9 @@ def _discover_skill_dirs() -> list[Path]:
     for child in sorted(SKILLS_DIR.rglob("SKILL.md")):
         parent = child.parent
         rel = parent.relative_to(SKILLS_DIR)
-        if any(part.startswith(".") or part in EXCLUDED_DIRS for part in rel.parts):
+        # Raw upstream snapshots under assets/ and local .cache/ copies are never
+        # indexed as skills, even if they carry valid frontmatter.
+        if any(part.startswith(".") or part in ("assets", ".cache") or part in EXCLUDED_DIRS for part in rel.parts):
             continue
         found.append(parent)
     return found
