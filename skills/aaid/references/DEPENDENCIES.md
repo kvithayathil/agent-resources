@@ -17,12 +17,15 @@ Stub candidates:
 - Nondeterminism inside the system: the clock, randomness, and anything else that makes
   repeated test runs disagree for reasons unrelated to your code.
 
-Never stub:
+Never stub (in acceptance suites and any test that integrates real I/O — the
+boundary these rules protect):
 
 - Your own persistence (database, object store), your own cache, your own queues, and
   your own internal services. These are **owned**; they are part of the system being
-  proven, not obstacles to it. Mocking an owned dependency verifies a fiction: the test
-  passes while the integration it should cover does not exist.
+  proven, not obstacles to it. Mocking an owned dependency there verifies a fiction:
+  the test passes while the integration it should cover does not exist. At unit level,
+  owned persistence may be mocked per the matrix below — a behavioral unit test's
+  subject is business logic, and unit tests must not touch real I/O.
 - Pure in-process logic. It is deterministic and free; replacing it with a fake weakens
   the test for no speed gain.
 

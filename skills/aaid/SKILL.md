@@ -7,7 +7,7 @@ source:
   ref: main
   path: .
 metadata:
-  version: "1.0.1"
+  version: "1.0.2"
   living: "true"
   self-learning: "true"
   self-updating: "true"
