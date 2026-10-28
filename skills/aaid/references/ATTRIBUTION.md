@@ -7,8 +7,12 @@ the `license` field of `SKILL.md` frontmatter.
 
 - **Title**: AAID (Augmented AI Development) skill (this file's subject; local skill name `aaid`)
 - **Upstream repository**: https://github.com/dawid-dahl-umain/augmented-ai-development
-- **Source paths consumed** (12 paths): see `openspec/changes/add-aaid-skill/evidence/source-manifest.md`
-  — guide `docs/aidd-workflow.md`, rules `rules/aaid/aaid-development-rules.mdc`,
+- **Source paths consumed** (12 paths): see
+  `openspec/changes/add-aaid-skill/evidence/source-manifest.md` — that
+  `openspec/` tree is LOCAL-ONLY (not committed with this repository); committed
+  consumers should use the per-path git blob SHAs, byte sizes and content hashes in
+  `assets/upstream/MANIFEST.json`, which record the same information. The consumed
+  paths: guide `docs/aidd-workflow.md`, rules `rules/aaid/aaid-development-rules.mdc`,
   `aaid-workflow-diagram.mermaid`, appendices A/B/D/E, the two plugin SKILL.md entrypoints,
   `plugins/aaid-tdd/.claude-plugin/plugin.json`, `plugins/aaid-bdd/.claude-plugin/plugin.json`,
   and `.claude-plugin/marketplace.json`.

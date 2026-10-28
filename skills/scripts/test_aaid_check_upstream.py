@@ -41,6 +41,7 @@ import json
 import os
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 import pytest
@@ -149,6 +150,7 @@ def test_check_only_unchanged(tmp_path: Path) -> None:
         "repository": REPO,
         "default_branch": BRANCH,
         "resolved_commit": PIN,
+        "integrated_commit": PIN,  # vendored: the snapshot IS the integrated state
         "generated": "2026-10-24",
         "files": files,
     }
@@ -694,6 +696,7 @@ def test_check_only_changed(tmp_path: Path) -> None:
         "repository": REPO,
         "default_branch": BRANCH,
         "resolved_commit": PIN,
+        "integrated_commit": PIN,  # vendored: the snapshot IS the integrated state
         "generated": "2026-10-24",
         "files": files,
     }
@@ -1221,6 +1224,10 @@ def test_paths_with_spaces_end_to_end(tmp_path: Path) -> None:
         {"docs/guide notes.md": base64.b64encode(tip_notes["docs/guide notes.md"]).decode()}
     )
     before2 = _snapshot(root)
+    # NOTE (gate 6.2 nit 7): the fake gh here is invoked with an argv path
+    # containing spaces, so this end-to-end pass proves the checker's own
+    # quoting only. REAL `gh api` URL-encoding of spaces in contents paths is
+    # UNVERIFIED by these fixtures (latent; no consumed path has spaces).
     allowed = {
         "assets/upstream/MANIFEST.json",
         "assets/upstream/docs/guide notes.md",
@@ -2126,26 +2133,85 @@ I5_MUTATIONS = ("pin_removed", "end_removed", "absent_source")
 @pytest.mark.parametrize("mutation", I5_MUTATIONS, ids=I5_MUTATIONS)
 def test_i5_corrupted_block_fallback_contract(tmp_path: Path, mutation: str) -> None:
     """(corrupt check-status block): (a) SOURCE block with BEGIN marker but the Integrated-pin
-    line removed, (b) truncated block with no END marker — check-only must
-    ERROR 'malformed check-status block', never silently fall back to the
-    manifest resolved_commit (which would read pin==tip and report a false
-    UNCHANGED after an interrupted cutover). Pinned contract change
-    disclosed: both corrupt states previously degraded to UNCHANGED.
-    (c) ENTIRELY ABSENT SOURCE.md keeps old fallback semantics: pin==tip
-    fixture yields UNCHANGED (guard-rails fixture equivalent)."""
+    line removed, (b) truncated block with no END marker, (c) ENTIRELY ABSENT
+    SOURCE.md — check-only must ERROR 'missing provenance'/'malformed
+    check-status block', never silently fall back to the manifest
+    resolved_commit (which would read pin==tip and report a false UNCHANGED
+    after an interrupted cutover, laundering fetched-but-unreviewed content
+    as integrated — closure-gate 6.3 finding 1). Pinned contract change
+    disclosed: absent SOURCE.md previously degraded to UNCHANGED; all three
+    corruption states now fail closed. Only a genuine first-run fixture
+    WITHOUT any provenance residue (no references/ dir, no .cache/) keeps the
+    manifest-pin fallback (pinned by test_check_only_unchanged)."""
     root, upstream, source, env = _i5_fixture(tmp_path, mutation)
     before = _snapshot(root)
     result = _run(root, env)
 
     if mutation == "absent_source":
-        assert result.returncode == 0, f"stderr:\n{result.stderr}"
-        assert result.stdout.strip() == "UNCHANGED", result.stdout
+        assert result.returncode != 0 and result.stdout == "", f"stdout {result.stdout!r} stderr {result.stderr!r}"
+        assert "provenance record missing" in result.stderr, result.stderr
+        assert "integrated pin after human review" in result.stderr, result.stderr
     else:
         assert result.returncode != 0 and result.stdout == "", (
             f"{mutation}: stdout {result.stdout!r} stderr {result.stderr!r}"
         )
         assert "ERROR: malformed check-status block" in result.stderr, result.stderr
     assert _snapshot(root) == before, "run modified the fixture root"
+
+
+def test_absent_source_after_fetched_not_laundered(tmp_path: Path) -> None:
+    """(closure-gate 6.3 finding 1, direct scenario): a refresh FETCHED changed
+    content (manifest advanced to tip2, local snapshot coherent at tip2,
+    SOURCE block still pin1) and THEN references/SOURCE.md was removed.
+    Check-only must ERROR — never UNCHANGED. The pre-fix checker fell back to
+    the manifest resolved_commit (== tip2) and reported the fetched state as
+    UNCHANGED (tip-vs-itself), laundering unreviewed content as integrated."""
+    pin1 = PIN
+    tip2 = "tip200000000000000000000000000000000000000002"
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    # Advance the fixture to the fetched-but-unreviewed state WITHOUT running
+    # --update: tip2 bytes on disk, manifest resolved at tip2, OLD pin in a
+    # valid block — then remove the provenance record entirely.
+    tip2_files = {"docs/guide.md": b"alpha line changed\n", "rules/rule.mdc": UPSTREAM_FILES["rules/rule.mdc"]}
+    manifest = json.loads((upstream / "MANIFEST.json").read_text())
+    manifest["resolved_commit"] = tip2
+    manifest["files"] = [
+        {
+            "path": path,
+            "bytes": len(data),
+            "sha256": hashlib.sha256(data).hexdigest(),
+            "git_blob_sha": _git_blob_sha(data),
+        }
+        for path, data in tip2_files.items()
+    ]
+    (upstream / "MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    (upstream / "docs/guide.md").write_bytes(tip2_files["docs/guide.md"])
+    source.write_text(
+        "# Source provenance — fixture\n\n"
+        "<!-- BEGIN CHECK-STATUS: checker-maintained -->\n"
+        "- Last successful check: " + datetime.date.today().isoformat() + "\n"
+        f"- Fetched commit: `{tip2}`\n"
+        f"- Integrated pin: `{pin1}`\n"
+        "<!-- END CHECK-STATUS -->\n"
+    )
+    env["AAID_FAKE_TIP_SHA"] = tip2
+    # gh serves tip2 content at the tip ref; pre-removal, tip-vs-pin1 was
+    # CHANGED (pin override), so the fixture was genuinely unreviewed.
+    env["AAID_FAKE_PIN_OVERRIDES"] = json.dumps(
+        {"docs/guide.md": base64.b64encode(UPSTREAM_FILES["docs/guide.md"]).decode()}
+    )
+    source.unlink()  # the laundering precondition: provenance file removed
+
+    before = _snapshot(root)
+    result = _run(root, env)
+
+    assert result.returncode != 0 and result.stdout == "", (
+        f"launched state must NOT report a verdict: stdout {result.stdout!r} stderr {result.stderr!r}"
+    )
+    assert result.stdout.strip() != "UNCHANGED", "fetched state laundered as UNCHANGED"
+    assert "provenance record missing" in result.stderr, result.stderr
+    assert "re-record the integrated pin after human review" in result.stderr, result.stderr
+    assert _snapshot(root) == before, "the erroring run modified the fixture root"
 
 
 # ---------------------------------------------------------------------------
@@ -2318,13 +2384,15 @@ def test_truncated_begin_marker_is_error(tmp_path: Path) -> None:
 def test_marker_trace_scope(tmp_path: Path) -> None:
     """(truncated-marker scope): the loose trace matches only
     lines containing 'BEGIN CHECK-STATUS'. Prose checks (like a sentence in
-    these docstrings) do NOT trip it; a SOURCE.md with no marker substring
-    and no block keeps old absent-block semantics: UNCHANGED in the
-    pin==tip fixture."""
+    these docstrings) do NOT trip it. A SOURCE.md with no marker substring
+    and NO block is itself the fail-closed 'missing provenance' state (the
+    integrated-pin record is absent; a manifest-pin fallback could launder a
+    fetched pin: closure-gate 6.3 finding 1) — ERROR, never UNCHANGED."""
     root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
     source.write_text("# Source provenance — fixture\n\nNo block here yet.\n")
     r1 = _run(root, env)
-    assert r1.returncode == 0 and r1.stdout.strip() == "UNCHANGED", r1.stdout
+    assert r1.returncode != 0 and r1.stdout == "", f"stdout {r1.stdout!r} stderr {r1.stderr!r}"
+    assert "ERROR: missing provenance" in r1.stderr, r1.stderr
 
     # ...and the marker substring must look like a marker attempt ON ITS
     # OWN line? No — substring-in-line is the contract: any line containing
@@ -2334,3 +2402,1248 @@ def test_marker_trace_scope(tmp_path: Path) -> None:
     r2 = _run(root, env)
     assert r2.returncode != 0, r2.stdout
     assert "malformed check-status block" in r2.stderr, r2.stderr
+
+
+# ---------------------------------------------------------------------------
+# Closure-gate 6.3 fixes: ancestor-symlink bounded-write bypass (finding 2)
+# and transport bounds (3), plus the direct ancestor-validator unit tests.
+# ---------------------------------------------------------------------------
+
+
+def test_ancestor_symlinked_references_dir_is_refused(tmp_path: Path) -> None:
+    """(closure-gate 6.3 finding 2, static variant): references/ symlinked to
+    a directory OUTSIDE the skill root must make --update ERROR before the
+    SOURCE.md cutover write — nothing may be written through the link. The
+    external directory receives no new files from the run."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    tip = "tip0000000000000000000000000000000000000002"
+    env["AAID_FAKE_TIP_SHA"] = tip
+    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps({"docs/guide.md": base64.b64encode(b"alpha line changed\n").decode()})
+    external = tmp_path / "external-references"
+    external.mkdir()
+    # Valid provenance in the LINK TARGET: reads still work (so the run
+    # proceeds deep into the refresh), only the WRITE must be refused.
+    (external / "SOURCE.md").write_text(source.read_text())
+    (root / "references").rename(tmp_path / "references-original")
+    (root / "references").symlink_to(external)
+    external_before = _snapshot(external)
+
+    result = _run(root, env, "--update")
+
+    assert result.returncode != 0 and result.stdout == "", f"stdout {result.stdout!r} stderr {result.stderr!r}"
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "symlink" in err, f"reason must name the manipulated ancestor: {err!r}"
+    assert _snapshot(external) == external_before, "external target touched by the run"
+
+
+def _pivot_docs_gh(bin_dir: Path, external_docs: Path) -> None:
+    """Extend the fake gh with a deterministic mid-run attacker: on the FIRST
+    contents call it renames assets/upstream/docs (still a REAL plain
+    directory at plan/containment time) and replaces it with a symlink to
+    `external_docs`. Idempotent re-check instead of a flag env var (no dead
+    scaffolding); paths derive from AAID_SKILL_ROOT, NOT AAID_FAKE_ROOT
+    (which points at the upstream fixture dir)."""
+    gh = bin_dir / "gh"
+    original = gh.read_text()
+    pivot = (
+        "skill_root = os.environ['AAID_SKILL_ROOT']\n"
+        "docs_dir = os.path.join(skill_root, 'assets', 'upstream', 'docs')\n"
+        "if path == 'docs/guide.md' and os.path.isdir(docs_dir) and not os.path.islink(docs_dir):\n"
+        "    os.rename(docs_dir, os.path.join(skill_root, 'docs-original'))\n"
+        "    os.symlink(os.environ['AAID_EXTERNAL_DOCS'], docs_dir)\n"
+    )
+    body = original.replace("import base64", "import base64, os", 1)
+    body = body.replace(
+        "if path is None:\n    sys.exit(1)\n",
+        "if path is None:\n    sys.exit(1)\n" + pivot,
+        1,
+    )
+    gh.write_text(body)
+    gh.chmod(0o755)
+
+
+def test_mid_run_docs_pivot_is_refused_before_cutover(tmp_path: Path) -> None:
+    """(closure-gate 6.3 finding 2, pivot variant — single deduped test):
+    assets/upstream/docs is a REAL plain directory at plan time; a local
+    attacker pivots it to an EXTERNAL symlink DURING the run (the fake gh
+    rewrites the tree between fetch calls, so plan-time containment passes).
+    The cutover write must ERROR pre-write on the write-time ancestor lstat,
+    never `UPDATED` through the pivot, and the external guide.md must keep
+    its old pin bytes (no redirected overwrite, no external writes)."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    tip = "tip0000000000000000000000000000000000000002"
+    guide_tip = b"alpha line changed\n"
+    env["AAID_FAKE_TIP_SHA"] = tip
+    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps({"docs/guide.md": base64.b64encode(guide_tip).decode()})
+    external_docs = tmp_path / "external-docs"
+    external_docs.mkdir()
+    external_guide = external_docs / "guide.md"
+    external_guide.write_bytes(UPSTREAM_FILES["docs/guide.md"])  # pin bytes: local hash check passes
+    external_before = _snapshot(external_docs)
+    _pivot_docs_gh(bin_dir, external_docs)
+    env["AAID_EXTERNAL_DOCS"] = str(external_docs)
+
+    result = _run(root, env, "--update")
+
+    assert result.returncode != 0 and result.stdout == "", f"stdout {result.stdout!r} stderr {result.stderr!r}"
+    assert result.stdout.strip() != f"UPDATED {tip}", "cutover wrote through a symlinked ancestor"
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    # Assert INSIDE the reason text, not a bare "symlink" substring that pytest
+    # tmp dirnames coincidentally contain.
+    assert "is a symlink or not a directory" in err, f"reason must name the manipulated ancestor: {err!r}"
+    assert "staging retained" in err, "cutover-phase refusal must retain the recovery staging"
+    assert external_guide.read_bytes() == UPSTREAM_FILES["docs/guide.md"], (
+        "EXTERNAL guide.md was overwritten through the ancestor symlink"
+    )
+    assert _snapshot(external_docs) == external_before, "external docs dir touched"
+
+
+# --- transport bounds: checker-enforced deadline + payload cap -------------
+
+
+def test_gh_timeout_is_error_and_releases_lock(tmp_path: Path) -> None:
+    """(closure-gate 6.3 finding 3): a hung gh beyond AAID_CHECK_TIMEOUT is a
+    sanitized ERROR naming the timeout, with nonzero exit; a --update run
+    releases its own lock so a hung transport cannot wedge .cache/update.lock."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    gh = bin_dir / "gh"
+    env["AAID_CHECK_TIMEOUT"] = "1"
+    gh.write_text("#!/usr/bin/env python3\nimport time, sys\ntime.sleep(5)\n")
+    gh.chmod(0o755)
+
+    before = _snapshot(root)
+    result = _run(root, env, "--update")
+
+    assert result.returncode != 0 and result.stdout == "", f"stdout {result.stdout!r}"
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "timed out after 1s" in err, f"no timeout reason: {err!r}"
+    assert "AAID_CHECK_TIMEOUT" in err, err
+    assert _snapshot(root) == before, "timed-out run modified the fixture root"
+    assert not (root / ".cache" / "update.lock").exists(), "lock wedged by timed-out run"
+
+
+def test_oversized_payload_rejected(tmp_path: Path) -> None:
+    """(closure-gate 6.3 finding 3): a decoded contents payload above the 2MB
+    checker bound is rejected with a sanitized ERROR — never buffered and
+    compared (no UNCHANGED/CHANGED verdict from oversized data)."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    gh = bin_dir / "gh"
+    gh.write_text(
+        "#!/usr/bin/env python3\n"
+        "import base64, hashlib, json, os, sys\n"
+        "args = sys.argv[1:]\n"
+        'if any("commits/main" in a for a in args):\n'
+        '    print(json.dumps({"sha": os.environ["AAID_FAKE_PIN"]}))\n'
+        "    sys.exit(0)\n"
+        "data = b'x' * (2 * 1024 * 1024 + 8)\n"
+        "print(json.dumps({\n"
+        "    'content': base64.b64encode(data).decode(),\n"
+        "    'encoding': 'base64',\n"
+        "    'size': len(data),\n"
+        "    'sha': hashlib.sha1(b'blob %d\\0' % len(data) + data).hexdigest(),\n"
+        "}))\n"
+    )
+    gh.chmod(0o755)
+
+    before = _snapshot(root)
+    result = _run(root, env)
+
+    assert result.returncode != 0 and result.stdout == "", f"stdout {result.stdout!r}"
+    assert "ERROR:" in result.stderr, result.stderr
+    assert "payload exceeds" in result.stderr, result.stderr
+    assert _snapshot(root) == before, "run modified the fixture root"
+
+
+def test_stale_lock_error_reports_age_and_manual_removal(tmp_path: Path) -> None:
+    """(closure-gate 6.3 finding 3, lock UX): an existing lock ERROR reports
+    the lock's age and the manual-removal instruction, and never deletes the
+    lock itself (the holder may be a live updater)."""
+    import time as _time
+
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    lock_dir = root / ".cache"
+    lock_dir.mkdir()
+    lock = lock_dir / "update.lock"
+    lock.write_bytes(b"owner: other\n")
+    old = _time.time() - 120
+    os.utime(lock, (old, old))
+    before = _snapshot(root)
+
+    result = _run(root, env, "--update")
+
+    assert result.returncode != 0 and result.stdout == "", f"stdout {result.stdout!r}"
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "another update in progress or stale lock" in err, err
+    assert "held for 1" in err, f"lock age not reported: {err!r}"
+    assert "remove .cache/update.lock manually" in err, err
+    assert lock.is_file(), "non-holder deleted the lock"
+    assert _snapshot(root) == before, "locked run modified the fixture root"
+
+
+# --- direct unit test of the ancestor-validation function (D) --------------
+
+
+def _load_checker_python(tmp_path: Path) -> dict[str, object]:
+    """Extract the embedded checker python (heredoc body, truncated before
+    main()) and exec it in a synthetic namespace so the dirfd walk helpers
+    are unit-testable without a subprocess."""
+    import re as _re
+    import sys as _sys
+
+    text = CHECKER.read_text()
+    match = _re.search(r"<<'PYEOF'\n(.*?)\nPYEOF\n", text, _re.S)
+    assert match, "embedded python program not found in checker"
+    src = match.group(1)
+    src = src[: src.index("\ndef main():")]
+    env_root = tmp_path / "unit-root"
+    (env_root / "assets" / "upstream").mkdir(parents=True)
+    old_argv = _sys.argv
+    _sys.argv = ["check-upstream.sh", str(env_root), "0"]
+    try:
+        namespace: dict[str, object] = {}
+        exec(compile(src, "check-upstream.sh#embedded", "exec"), namespace)  # noqa: S102 - test extraction of own repo source
+    finally:
+        _sys.argv = old_argv
+    assert "walk_dirs" in namespace, "walk_dirs not defined in extraction"
+    return namespace
+
+
+def test_walk_dirs_refuses_symlink_escape_and_missing(tmp_path: Path) -> None:
+    """(D, dirfd API): direct unit tests of the walk helper — (a) a
+    symlinked component is refused; (b) a non-canonical escape ('..') is
+    refused; (c) a missing component raises Missing with create=False and
+    is created-and-revalidated with create=True; (d) an ordinary in-root
+    chain passes and returns an openable dirfd."""
+    import os as _os
+    import stat as _stat
+
+    ns = _load_checker_python(tmp_path)
+    walk_dirs = ns["walk_dirs"]
+    Missing = ns["Missing"]
+    root = tmp_path / "unit-root"
+    external = tmp_path / "unit-external"
+    external.mkdir()
+    (root / "references").symlink_to(external)  # (a) symlink pivot
+    root_fd = _os.open(str(root), _os.O_RDONLY | _os.O_DIRECTORY)
+
+    with pytest.raises(SystemExit):
+        walk_dirs(("references",), root_fd, "unit walk")
+
+    (root / "references").unlink()  # (b) escape
+    with pytest.raises(SystemExit):
+        walk_dirs(("..",), root_fd, "unit walk")
+
+    with pytest.raises(Missing):  # (c-i) missing, strict
+        walk_dirs(("brand-new-dir",), root_fd, "unit walk")
+    fd = walk_dirs(("brand-new-dir", "deeper"), root_fd, "unit walk", create=True)
+    assert _stat.S_ISDIR(_os.fstat(fd).st_mode)  # (c-ii) created
+    _os.close(fd)
+    assert (root / "brand-new-dir" / "deeper").exists()
+
+    fd = walk_dirs(("assets", "upstream"), root_fd, "unit walk")  # (d)
+    assert _stat.S_ISDIR(_os.fstat(fd).st_mode)
+    _os.close(fd)
+    _os.close(root_fd)
+
+
+def test_read_regular_refuses_symlink_and_fifo(tmp_path: Path) -> None:
+    """(D, read-side): direct unit tests — (a) a symlinked regular record is
+    refused as tampered provenance (external target untouched); (b) a FIFO
+    is refused FAST (no unbounded open/read); (c) a plain file reads fine."""
+    import os as _os
+
+    ns = _load_checker_python(tmp_path)
+    read_regular = ns["read_regular_at_fd"]
+    root = tmp_path / "unit-root"
+    root_fd = _os.open(str(root), _os.O_RDONLY | _os.O_DIRECTORY)
+
+    (root / "regular.md").write_bytes(b"plain\n")  # (c) control leg
+    assert read_regular(root_fd, "regular.md", "unit read") == b"plain\n"
+
+    external = tmp_path / "unit-external.md"
+    external.write_bytes(b"tampered bytes\n")
+    (root / "linked.md").symlink_to(external)  # (a) symlinked record
+    with pytest.raises(SystemExit):
+        read_regular(root_fd, "linked.md", "provenance record")
+    assert external.read_bytes() == b"tampered bytes\n"
+
+    fifo = root / "fifo.md"  # (b) FIFO record
+    _os.mkfifo(str(fifo))
+    with pytest.raises(SystemExit):
+        read_regular(root_fd, "fifo.md", "provenance record")
+    _os.close(root_fd)
+
+
+# ---------------------------------------------------------------------------
+# Iteration-3 coverage: legacy-migration negative test; persistent root
+# rename+symlink swap; symlinked root; python3 preflight; integration sync
+# advancement; exact raw-cap boundary; EOF-then-stderr-hang bound;
+# foreign-lock deletion refusal; FIFO SOURCE end-to-end.
+# ---------------------------------------------------------------------------
+
+
+def test_legacy_migration_integrated_defaults_to_source_pin(tmp_path: Path) -> None:
+    """(Fix 1, HIGH): legacy manifest WITHOUT integrated_commit in the
+    post-refresh state (resolved=tip2 fetched, SOURCE pin=pin1). --update
+    must persist integrated_commit=pin1 (the human-integrated record),
+    NEVER tip2; afterwards deleting references/ AND .cache/ must leave
+    check-only reporting CHANGED (review pending), not the pre-fix-laundry
+    UNCHANGED B-vs-B."""
+    root, upstream, source, bin_dir, env, pin1, tip2 = _fetched_unreviewed_fixture(tmp_path, with_integrated=False)
+    # Sanity: the fixture truly carries the legacy schema shape.
+    legacy = json.loads((upstream / "MANIFEST.json").read_text())
+    assert "integrated_commit" not in legacy
+    assert legacy["resolved_commit"] == tip2
+
+    result = _run(root, env, "--update")
+
+    assert result.returncode == 0, f"--update stderr:\n{result.stderr}"
+    assert result.stdout.strip() == f"UPDATED {tip2}", result.stdout
+    new_manifest = json.loads((upstream / "MANIFEST.json").read_text())
+    # The migrated integrated pin is the SOURCE record, not the fetched tip.
+    assert new_manifest["integrated_commit"] == pin1, new_manifest["integrated_commit"]
+    assert new_manifest["resolved_commit"] == tip2
+
+    # Delete BOTH provenance dirs (the laundering precondition).
+    source.unlink()
+    shutil.rmtree(root / "references")
+    if (root / ".cache").is_dir():
+        shutil.rmtree(root / ".cache")
+
+    before = _snapshot(root)
+    check = _run(root, env)
+
+    assert check.returncode == 0, f"check-only stderr:\n{check.stderr}"
+    assert check.stdout.strip() == "CHANGED", (
+        f"legacy migrated pin must keep flagging review pending; got {check.stdout!r}"
+    )
+    assert _snapshot(root) == before, "check-only run modified the fixture root"
+
+
+def test_persistent_root_rename_swap_refused(tmp_path: Path) -> None:
+    """(Fix 2, HIGH): the root directory is renamed and a symlink left at
+    the old pathname pointing at a MATCHING EXTERNAL tree — a fake gh
+    performs the swap between gh calls (deterministic mid-run pivot). The
+    dirfd-pinned boundary verifies path/identity before every write: the
+    run must ERROR and NOT write the external tree."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    tip = "tip0000000000000000000000000000000000000002"
+    env["AAID_FAKE_TIP_SHA"] = tip
+    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps({"docs/guide.md": base64.b64encode(b"alpha line changed\n").decode()})
+    external_root = tmp_path / "external-matching-root"
+    shutil.copytree(root, external_root, symlinks=True)
+    external_before = _snapshot(external_root)
+    gh = bin_dir / "gh"
+    original = gh.read_text()
+    pivot = (
+        "new_root = os.environ['AAID_EXTERNAL_ROOT']\n"
+        "old_root = os.environ['AAID_SKILL_ROOT']\n"
+        "os.rename(old_root, old_root + '-renamed')\n"
+        "os.symlink(new_root, old_root)\n"
+    )
+    body = original.replace(
+        "if path is None:\n    sys.exit(1)\n",
+        "if path is None:\n    sys.exit(1)\n" + pivot,
+        1,
+    )
+    gh.write_text(body)
+    gh.chmod(0o755)
+    env["AAID_EXTERNAL_ROOT"] = str(external_root)
+
+    result = _run(root, env, "--update")
+
+    assert result.returncode != 0 and result.stdout == "", (
+        f"swapped root must be refused: stdout {result.stdout!r} stderr {result.stderr!r}"
+    )
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "renamed or swapped mid-run" in err, f"reason: {err!r}"
+    # Fetch-phase refusal: staging is cleaned (no retained note needed); the
+    # material claim is the swap refusal + an untouched external tree.
+    # The external matching tree must be byte-identical (no redirected
+    # writes; note the pivot itself added the symlink inside tmp only).
+    assert _snapshot(external_root) == external_before, "external root touched"
+
+
+def test_symlinked_skill_root_boundary_refused(tmp_path: Path) -> None:
+    """(nit 6, covered adversarially): AAID_SKILL_ROOT pointing at a SYMLINK
+    (with the test-harness marker set) is refused: ERROR naming the
+    boundary symlink."""
+    real_root = tmp_path / "real-root"
+    (real_root / "assets" / "upstream" / "docs").mkdir(parents=True)
+    (real_root / "references").mkdir()
+    data = UPSTREAM_FILES["docs/guide.md"]
+    (real_root / "assets" / "upstream" / "docs/guide.md").write_bytes(data)
+    source = real_root / "references" / "SOURCE.md"
+    source.write_text(
+        "# Source provenance — fixture\n\n"
+        "<!-- BEGIN CHECK-STATUS: checker-maintained -->\n"
+        "- Last successful check: 2026-10-23\n"
+        f"- Fetched commit: `{PIN}`\n"
+        f"- Integrated pin: `{PIN}`\n"
+        "<!-- END CHECK-STATUS -->\n"
+    )
+    files = [
+        {
+            "path": "docs/guide.md",
+            "bytes": len(data),
+            "sha256": hashlib.sha256(data).hexdigest(),
+            "git_blob_sha": _git_blob_sha(data),
+        }
+    ]
+    (real_root / "assets" / "upstream" / "MANIFEST.json").write_text(
+        json.dumps(
+            {
+                "repository": REPO,
+                "default_branch": BRANCH,
+                "resolved_commit": PIN,
+                "generated": "2026-10-24",
+                "files": files,
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    _make_fake_gh(bin_dir, real_root / "assets" / "upstream")
+    env = dict(os.environ)
+    env["PATH"] = str(bin_dir) + os.pathsep + env["PATH"]
+    env["AAID_FAKE_ROOT"] = str(real_root / "assets" / "upstream")
+    env["AAID_FAKE_PIN"] = PIN
+    env["AAID_FAKE_ROOT"] = str(real_root / "assets" / "upstream")
+    env["AAID_FAKE_TIP_SHA"] = PIN
+    env["AAID_FAKE_TIP_OVERRIDES"] = "{}"
+    env["AAID_FAKE_PIN_OVERRIDES"] = "{}"
+    root_link = tmp_path / "linked-root"
+    root_link.symlink_to(real_root)
+    env["AAID_SKILL_ROOT"] = str(root_link)
+
+    result = _run(root_link, env)
+
+    assert result.returncode != 0 and result.stdout == "", (
+        f"symlinked root boundary must be refused: stdout {result.stdout!r}"
+    )
+    assert "skill root boundary itself is a symlink" in result.stderr, result.stderr
+
+
+def test_python3_preflight_message(tmp_path: Path) -> None:
+    """(nit 6): a PATH-sandboxed run with gh present but python3 absent
+    produces the sanitized preflight ERROR — never a raw exit 127."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    minbin = tmp_path / "no_py_bin"
+    minbin.mkdir(exist_ok=True)
+    (minbin / "gh").symlink_to(bin_dir / "gh")
+    (minbin / "dirname").symlink_to("/usr/bin/dirname")
+    env["PATH"] = str(minbin)
+
+    result = _run(root, env)
+
+    assert result.returncode != 0 and result.stdout == "", result.stdout
+    assert result.stderr.strip() == (
+        "ERROR: python3 not found on PATH (the embedded checker program requires python3)"
+    ), result.stderr
+
+
+def test_integration_sync_advances_integrated_pin(tmp_path: Path) -> None:
+    """(nit 6): the human advances the SOURCE block pin to the previously
+    fetched tip2; the NEXT authorized update syncs the manifest's
+    integrated_commit pin1 -> tip2 (and resolved stays tip2)."""
+    pin1 = PIN
+    tip2 = "tip200000000000000000000000000000000000000002"
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    tip2_files = {
+        "docs/guide.md": b"alpha line changed\n",
+        "rules/rule.mdc": UPSTREAM_FILES["rules/rule.mdc"],
+    }
+    manifest = json.loads((upstream / "MANIFEST.json").read_text())
+    manifest["resolved_commit"] = tip2
+    manifest["integrated_commit"] = pin1
+    manifest["files"] = [
+        {"path": p, "bytes": len(d), "sha256": hashlib.sha256(d).hexdigest(), "git_blob_sha": _git_blob_sha(d)}
+        for p, d in tip2_files.items()
+    ]
+    (upstream / "MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    (upstream / "docs/guide.md").write_bytes(tip2_files["docs/guide.md"])
+    # Human integration: the SOURCE block pin now records tip2.
+    source.write_text(
+        "# Source provenance — fixture\n\n"
+        "<!-- BEGIN CHECK-STATUS: checker-maintained -->\n"
+        "- Last successful check: " + datetime.date.today().isoformat() + "\n"
+        f"- Fetched commit: `{tip2}`\n"
+        f"- Integrated pin: `{tip2}`\n"
+        "<!-- END CHECK-STATUS -->\n"
+    )
+    env["AAID_FAKE_TIP_SHA"] = tip2
+    env["AAID_FAKE_TIP_OVERRIDES"] = "{}"
+    env["AAID_FAKE_PIN_OVERRIDES"] = json.dumps(
+        {"docs/guide.md": base64.b64encode(UPSTREAM_FILES["docs/guide.md"]).decode()}
+    )
+
+    result = _run(root, env, "--update")
+
+    assert result.returncode == 0, f"--update stderr:\n{result.stderr}"
+    assert result.stdout.strip() == f"UPDATED {tip2}", result.stdout
+    new_manifest = json.loads((upstream / "MANIFEST.json").read_text())
+    # ADVANCEMENT: integrated pin moved pin1 -> tip2 by the sync arm.
+    assert new_manifest["integrated_commit"] == tip2, new_manifest["integrated_commit"]
+    assert new_manifest["resolved_commit"] == tip2
+
+
+def _make_padded_gh(bin_dir: Path, upstream: Path, target_bytes: int) -> None:
+    """Fake `gh` whose EVERY response (commits + contents) is padded with
+    JSON-legal internal whitespace to land at EXACTLY `target_bytes` raw
+    stdout bytes (used for the exact raw-cap boundary test)."""
+    gh = bin_dir / "gh"
+    gh.write_text(
+        "#!/usr/bin/env python3\n"
+        "import base64, hashlib, json, os, sys\n"
+        "args = sys.argv[1:]\n"
+        'target = int(os.environ.get("AAID_RAW_TARGET", "0"))\n'
+        'pin = os.environ["AAID_FAKE_PIN"]\n'
+        'root = os.environ["AAID_FAKE_ROOT"]\n'
+        "obj = None\n"
+        'if any("repos/example/ex/commits/main" in a for a in args):\n'
+        '    obj = {"sha": pin}\n'
+        "else:\n"
+        "    path = None\n"
+        "    for a in args:\n"
+        '        if "repos/example/ex/contents/" in a:\n'
+        '            path = a.split("repos/example/ex/contents/", 1)[1]\n'
+        '    data = open(os.path.join(root, path), "rb").read()\n'
+        "    obj = {\n"
+        '        "content": base64.b64encode(data).decode(),\n'
+        '        "encoding": "base64",\n'
+        '        "size": len(data),\n'
+        '        "sha": hashlib.sha1(b"blob %d\\0" % len(data) + data).hexdigest(),\n'
+        "    }\n"
+        "raw = json.dumps(obj)\n"
+        "pad = target - len(raw)\n"
+        "if pad < 0:\n"
+        "    pad = 0\n"
+        'sys.stdout.write(raw[:-1] + " " * pad + "}")\n'
+    )
+    gh.chmod(0o755)
+
+
+@pytest.mark.parametrize(
+    "target_bytes,expect_ok",
+    [
+        (4 * 1024 * 1024, True),  # exactly the raw cap: passes
+        (4 * 1024 * 1024 + 1, False),  # one byte past: killed + ERROR
+    ],
+)
+def test_raw_response_cap_exact_boundary(tmp_path: Path, target_bytes: int, expect_ok: bool) -> None:
+    """(adversarial, raw-cap boundary semantics): a response of EXACTLY
+    4 MiB raw stdout passes the raw cap and yields a verdict; 4 MiB + 1
+    leads the run killed with the sanitized raw-cap ERROR."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    _make_padded_gh(bin_dir, upstream, target_bytes)
+    env["AAID_RAW_TARGET"] = str(target_bytes)
+
+    before = _snapshot(root)
+    result = _run(root, env)
+
+    if expect_ok:
+        assert result.returncode == 0, f"stderr:\n{result.stderr}"
+        assert result.stdout.strip() == "UNCHANGED", result.stdout
+    else:
+        assert result.returncode != 0 and result.stdout == "", result.stdout
+        err = result.stderr.strip()
+        assert err.startswith("ERROR:"), err
+        assert "raw response exceeded" in err, f"reason: {err!r}"
+    assert _snapshot(root) == before, "run modified the fixture root"
+
+
+def test_post_eof_stderr_hang_is_deadline_bounded(tmp_path: Path) -> None:
+    """(Fix 3): gh closes stdout then BLOCKS (sleep) on a live stderr pipe —
+    the post-EOF wait is deadline-bounded: killed and reported with the
+    sanitized reason, within the AAID_CHECK_TIMEOUT window."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    gh = bin_dir / "gh"
+    gh.write_text(
+        "#!/usr/bin/env python3\n"
+        "import os, sys, time\n"
+        "args = sys.argv[1:]\n"
+        'if any("commits/main" in a for a in args):\n'
+        '    sys.stdout.write(\'{"sha": "x" * 40}\')\n'
+        "    sys.stdout.flush()\n"
+        "    os.close(1)\n"  # fd-level close: sys.stdout.close() leaves the
+        "    time.sleep(30)\n"  # pipe fd open on some platforms (no EOF)
+        "sys.exit(0)\n"
+    )
+    gh.chmod(0o755)
+    env["AAID_CHECK_TIMEOUT"] = "2"
+
+    drift_start = time.time()
+    result = _run(root, env)
+    elapsed = time.time() - drift_start
+
+    assert result.returncode != 0 and result.stdout == "", result.stdout
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "did not exit after closing stdout" in err, f"reason: {err!r}"
+    # Real end-to-end wall-clock bound: comfortably above the 2s deadline
+    # (select granularity) but FAR below the child would block (30s).
+    assert elapsed < 15, f"post-EOF hang not bounded (took {elapsed:.1f}s)"
+
+
+def test_foreign_lock_deletion_refused(tmp_path: Path) -> None:
+    """(adversarial medium): .cache is ALREADY a symlink pointing to an
+    external directory that holds a foreign update.lock — the checker must
+    ERROR at the boundary walk and never create/unlink a lock through the
+    swap; the foreign lock file stays byte-identical."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    tip = "tip0000000000000000000000000000000000000002"
+    env["AAID_FAKE_TIP_SHA"] = tip
+    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps({"docs/guide.md": base64.b64encode(b"alpha line changed\n").decode()})
+    external_cache = tmp_path / "external-cache"
+    external_cache.mkdir()
+    foreign_lock = external_cache / "update.lock"
+    foreign_lock.write_bytes(b"owner: other-process\n")
+    # The pivot replaces the fixture's .cache (created by the harden fixture?
+    # no — no .cache yet) — just make .cache itself the symlink.
+    (root / ".cache").symlink_to(external_cache)
+    foreign_before = _snapshot(external_cache)
+
+    result = _run(root, env, "--update")
+
+    assert result.returncode != 0 and result.stdout == "", f"stdout {result.stdout!r} stderr {result.stderr!r}"
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "is a symlink or not a directory" in err, f"reason: {err!r}"
+    assert _snapshot(external_cache) == foreign_before, "foreign lock disturbed"
+
+
+def test_fifo_source_refused_end_to_end(tmp_path: Path) -> None:
+    """(Fix 2, FIFO finding): a FIFO at references/SOURCE.md blocks
+    read-back with the regular-file refusal — no unbounded open/read hang."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    source.unlink()
+    os.mkfifo(str(source))
+
+    before = time.time()
+    result = _run(root, env)
+    elapsed = time.time() - before
+
+    assert result.returncode != 0 and result.stdout == "", result.stdout
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "not a regular file" in err, f"reason: {err!r}"
+    assert elapsed < 15, f"FIFO refused slowly (took {elapsed:.1f}s)"
+
+
+def _fetched_unreviewed_fixture(tmp_path: Path, with_integrated: bool):
+    """Fixture in the post-authoritative-fetch state WITHOUT running --update:
+    resolved advanced to tip2 (coherent single-snapshot manifest, tip2 bytes
+    on disk), SOURCE block still pin1, and (optionally) an explicit
+    integrated_commit = pin1 in the manifest. Returns the same tuple shape as
+    _harden_fixture plus pin1/tip2."""
+    pin1 = PIN
+    tip2 = "tip200000000000000000000000000000000000000002"
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    tip2_files = {
+        "docs/guide.md": b"alpha line changed\n",
+        "rules/rule.mdc": UPSTREAM_FILES["rules/rule.mdc"],
+    }
+    manifest = json.loads((upstream / "MANIFEST.json").read_text())
+    manifest["resolved_commit"] = tip2
+    if with_integrated:
+        manifest["integrated_commit"] = pin1
+    manifest["files"] = [
+        {
+            "path": path,
+            "bytes": len(data),
+            "sha256": hashlib.sha256(data).hexdigest(),
+            "git_blob_sha": _git_blob_sha(data),
+        }
+        for path, data in tip2_files.items()
+    ]
+    (upstream / "MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    (upstream / "docs/guide.md").write_bytes(tip2_files["docs/guide.md"])
+    env["AAID_FAKE_TIP_SHA"] = tip2
+    env["AAID_FAKE_PIN_OVERRIDES"] = json.dumps(
+        {"docs/guide.md": base64.b64encode(UPSTREAM_FILES["docs/guide.md"]).decode()}
+    )
+    return root, upstream, source, bin_dir, env, pin1, tip2
+
+
+def test_full_provenance_deletion_reports_changed(tmp_path: Path) -> None:
+    """(M1-residual, binding rule): a refresh FETCHED changed content, then
+    BOTH references/ and .cache/ were deleted — no residue survives, the
+    residue-based first-run discriminator is fooled, and the checker takes
+    the manifest fallback. That fallback must use the manifest INTEGRATED
+    commit (pin1, human-integrated at vendoring), yielding CHANGED ('upstream
+    moved, review pending') — NEVER UNCHANGED. The pre-fix checker fell back
+    to resolved_commit (== the fetched tip) and reported tip-vs-itself as
+    UNCHANGED."""
+    root, upstream, source, bin_dir, env, pin1, tip2 = _fetched_unreviewed_fixture(tmp_path, with_integrated=True)
+    source.unlink()
+    shutil.rmtree(root / "references")
+    if (root / ".cache").is_dir():
+        shutil.rmtree(root / ".cache")
+    assert not os.path.lexists(root / "references")
+    assert not os.path.lexists(root / ".cache")
+
+    before = _snapshot(root)
+    result = _run(root, env)
+
+    assert result.returncode == 0, f"stderr:\n{result.stderr}"
+    assert result.stdout.strip() == "CHANGED", (
+        f"fetched state must keep flagging review pending; stdout {result.stdout!r}, stderr {result.stderr!r}"
+    )
+    assert _snapshot(root) == before, "check-only run modified the fixture root"
+    assert not (root / ".cache").exists(), "check-only created .cache"
+
+
+def test_mid_run_cache_pivot_is_refused(tmp_path: Path) -> None:
+    """(M2-residual, pinned boundary): .cache/ is a REAL plain directory at
+    plan time (lock + staging already created inside it); a local attacker
+    pivots it to an EXTERNAL symlink between gh calls (the fake gh rewrites
+    the tree during the fetch window). Every staged write validates its
+    ancestor chain against the PINNED root, so the .cache symlink is refused
+    BEFORE any staging write can land inside the external directory, and the
+    fail cleanup never rmtree-follows the link."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    tip = "tip0000000000000000000000000000000000000002"
+    env["AAID_FAKE_TIP_SHA"] = tip
+    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps({"docs/guide.md": base64.b64encode(b"alpha line changed\n").decode()})
+    external_cache = tmp_path / "external-cache"
+    external_cache.mkdir()
+    external_before = _snapshot(external_cache)
+    gh = bin_dir / "gh"
+    original = gh.read_text()
+    pivot = (
+        "cache_now = os.path.join(os.environ['AAID_SKILL_ROOT'], '.cache')\n"
+        "if path == 'docs/guide.md' and os.path.isdir(cache_now) and not os.path.islink(cache_now):\n"
+        "    os.rename(cache_now, os.path.join(os.environ['AAID_SKILL_ROOT'], 'cache-original'))\n"
+        "    os.symlink(os.environ['AAID_EXTERNAL_CACHE'], cache_now)\n"
+    )
+    body = original.replace(
+        "if path is None:\n    sys.exit(1)\n",
+        "if path is None:\n    sys.exit(1)\n" + pivot,
+        1,
+    )
+    gh.write_text(body)
+    gh.chmod(0o755)
+    env["AAID_EXTERNAL_CACHE"] = str(external_cache)
+
+    result = _run(root, env, "--update")
+
+    assert result.returncode != 0 and result.stdout == "", f"stdout {result.stdout!r} stderr {result.stderr!r}"
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "the pinned .cache was renamed or swapped mid-run" in err, f"reason: {err!r}"
+    # Nothing (staged bytes, staging dirs, lock handles) may land in the
+    # external dir — and fail cleanup must not rmtree through the link.
+    assert _snapshot(external_cache) == external_before, "external .cache target touched"
+
+
+def test_symlinked_source_is_tampered_provenance(tmp_path: Path) -> None:
+    """(read-side provenance discipline): references/SOURCE.md replaced by a
+    SYMLINK pointing at an external location — even one holding a VALID
+    check-status block — is tampered provenance: check-only must ERROR
+    naming the tamper, never trust the redirected pin."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    external_src = tmp_path / "ext-source-record.md"
+    external_src.write_text(source.read_text())
+    source.unlink()
+    source.symlink_to(external_src)
+    external_before = _snapshot(external_src)
+
+    result = _run(root, env)
+
+    assert result.returncode != 0 and result.stdout == "", f"stdout {result.stdout!r} stderr {result.stderr!r}"
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "tampered provenance" in err, f"reason: {err!r}"
+    assert _snapshot(external_src) == external_before, "external provenance target touched"
+
+
+@pytest.mark.parametrize(
+    "value,expected_msg",
+    [
+        ("nan", "AAID_CHECK_TIMEOUT must be a finite positive number"),
+        ("inf", "AAID_CHECK_TIMEOUT must be a finite positive number"),
+        ("-5", "AAID_CHECK_TIMEOUT must be a finite positive number"),
+        ("not-a-number", "invalid AAID_CHECK_TIMEOUT"),
+        ("999999999", None),  # clamped to the sane max; run proceeds normally
+    ],
+)
+def test_aaid_check_timeout_value_bounds(tmp_path: Path, value: str, expected_msg: str | None) -> None:
+    """(m2/L1-residual): AAID_CHECK_TIMEOUT bounds — nan/inf/negative/
+    non-numeric are sanitized ERRORS (never silently disabling the
+    deadline); oversized-but-finite values are CLAMPED to the sane max and
+    the run proceeds normally."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    env["AAID_CHECK_TIMEOUT"] = value
+
+    result = _run(root, env)
+
+    if expected_msg is None:
+        assert result.returncode == 0, f"stderr:\n{result.stderr}"
+        assert result.stdout.strip() == "UNCHANGED", result.stdout
+    else:
+        assert result.returncode != 0 and result.stdout == "", result.stdout
+        assert expected_msg in result.stderr, result.stderr
+
+
+def test_raw_response_cap_kills_before_parse(tmp_path: Path) -> None:
+    """(L1-residual, raw cap): an inflated RAW gh response (whitespace-
+    padded so raw stdout > 4MB with a tiny decoded meaning) is killed at the
+    raw-read bound BEFORE any JSON parse or decode: sanitized ERROR, never a
+    verdict."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    gh = bin_dir / "gh"
+    gh.write_text(
+        "#!/usr/bin/env python3\n"
+        "import json, sys\n"
+        "args = sys.argv[1:]\n"
+        'if any("commits/main" in a for a in args):\n'
+        '    print(json.dumps({"sha": "x" * 40}))\n'
+        "    sys.exit(0)\n"
+        'sys.stdout.write("{" + "\\n" * (5 * 1024 * 1024))\n'
+        "sys.stdout.flush()\n"
+    )
+    gh.chmod(0o755)
+
+    before = _snapshot(root)
+    result = _run(root, env)
+
+    assert result.returncode != 0 and result.stdout == "", f"stdout {result.stdout!r}"
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "raw response exceeded" in err, f"reason: {err!r}"
+    assert _snapshot(root) == before, "run modified the fixture root"
+
+
+def test_planted_staging_final_symlink_cannot_redirect(tmp_path: Path) -> None:
+    """(staging write path): a final-component symlink planted inside the
+    run's staging dir between gh calls cannot redirect a staged write: the
+    guarded_write route (O_NOFOLLOW temp + os.replace entry replacement) ends
+    the destination as a REGULAR file with the correct staged bytes; the
+    attacker's external target keeps its old bytes; the update completes
+    normally."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    tip = "tip0000000000000000000000000000000000000002"
+    env["AAID_FAKE_TIP_SHA"] = tip
+    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps({"docs/guide.md": base64.b64encode(b"alpha line changed\n").decode()})
+    external_victim = tmp_path / "OFF-STAGING-VICTIM.mdc"
+    external_victim.write_bytes(UPSTREAM_FILES["rules/rule.mdc"])
+    gh = bin_dir / "gh"
+    original = gh.read_text()
+    plant = (
+        "if path == 'docs/guide.md':\n"
+        "    import glob\n"
+        "    for staging_dir in glob.glob(os.path.join(os.environ['AAID_SKILL_ROOT'], '.cache', 'staging-*')):\n"
+        "        rules_dir = os.path.join(staging_dir, 'rules')\n"
+        "        os.makedirs(rules_dir, exist_ok=True)\n"
+        "        target = os.path.join(rules_dir, 'rule.mdc')\n"
+        "        if not os.path.lexists(target):\n"
+        "            os.symlink(os.environ['AAID_EXTERNAL_VICTIM'], target)\n"
+    )
+    body = original.replace(
+        "if path is None:\n    sys.exit(1)\n",
+        "if path is None:\n    sys.exit(1)\n" + plant,
+        1,
+    )
+    gh.write_text(body)
+    gh.chmod(0o755)
+    env["AAID_EXTERNAL_VICTIM"] = str(external_victim)
+
+    result = _run(root, env, "--update")
+
+    assert result.returncode == 0, f"--update stderr:\n{result.stderr}"
+    assert result.stdout.strip() == f"UPDATED {tip}", result.stdout
+    # The staged rules entry must be a REGULAR file with correct bytes (the
+    # planted link was replaced, never followed through).
+    assert not (upstream / "rules/rule.mdc").is_symlink()
+    assert (upstream / "rules/rule.mdc").read_bytes() == UPSTREAM_FILES["rules/rule.mdc"]
+    # The attacker's external target keeps its ORIGINAL bytes.
+    assert external_victim.is_file()
+    assert external_victim.read_bytes() == UPSTREAM_FILES["rules/rule.mdc"]
+
+
+# ---------------------------------------------------------------------------
+# Iteration-4: F1 single-ERROR-line; F2 python>=3.11 preflight; F3 snapshot
+# read cap; F4 absence-of-provenance-never-authenticates; F5 top-level-file
+# full update (dup-fd regression).
+# ---------------------------------------------------------------------------
+
+
+def test_fail_lone_path_single_error_line(tmp_path: Path) -> None:
+    """(F1): a planted-symlink ANCESTOR during a staging write walk raises
+    inside walk_dirs — the run's stderr must contain EXACTLY ONE ERROR line
+    (pre-fix the unguarded finally raised UnboundLocalError, producing a
+    second spurious ERROR and leaking the walk fd)."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    tip = "tip0000000000000000000000000000000000000002"
+    env["AAID_FAKE_TIP_SHA"] = tip
+    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps({"docs/guide.md": base64.b64encode(b"alpha line changed\n").decode()})
+    external_docs = tmp_path / "external-docs"
+    external_docs.mkdir()
+    (external_docs / "guide.md").write_bytes(UPSTREAM_FILES["docs/guide.md"])
+    gh = bin_dir / "gh"
+    original = gh.read_text()
+    pivot = (
+        "if path == 'rules/rule.mdc' and ref != pin:\n"
+        "    import glob\n"
+        "    for staging_dir in glob.glob(os.path.join(os.environ['AAID_SKILL_ROOT'], '.cache', 'staging-*')):\n"
+        "        os.rename(os.path.join(staging_dir, 'docs'), os.path.join(staging_dir, 'docs-util'))\n"
+        "        os.symlink(os.environ['AAID_EXTERNAL_DOCSDIR'], os.path.join(staging_dir, 'docs'))\n"
+    )
+    body = original.replace(
+        "if path is None:\n    sys.exit(1)\n",
+        "if path is None:\n    sys.exit(1)\n" + pivot,
+        1,
+    )
+    gh.write_text(body)
+    gh.chmod(0o755)
+    env["AAID_EXTERNAL_DOCSDIR"] = str(external_docs)
+
+    result = _run(root, env, "--update")
+
+    assert result.returncode != 0 and result.stdout == "", result.stdout
+    err = result.stderr
+    assert err.count("ERROR:") == 1, f"exactly one sanitized line required: {err!r}"
+    assert "is a symlink or not a directory" in err, f"reason: {err!r}"
+    # The Planted-docs walk must not have written through the link.
+    assert (external_docs / "guide.md").read_bytes() == UPSTREAM_FILES["docs/guide.md"]
+
+
+def test_python_version_floor_preflight(tmp_path: Path) -> None:
+    """(F2): a python3 that fails the version check makes the shell
+    preflight fire with the floor named — never a raw traceback mid-cutover."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    minbin = tmp_path / "old_py_bin"
+    minbin.mkdir(exist_ok=True)
+    (minbin / "gh").symlink_to(bin_dir / "gh")
+    (minbin / "dirname").symlink_to("/usr/bin/dirname")
+    fake_py = minbin / "python3"
+    fake_py.write_text("#!/usr/bin/env sh\necho '3.9.6'\nexit 1\n")
+    fake_py.chmod(0o755)
+    env["PATH"] = str(minbin)
+
+    result = _run(root, env)
+
+    assert result.returncode != 0 and result.stdout == "", result.stdout
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "python3 >= 3.11" in err, f"reason: {err!r}"
+    assert "supported interpreter policy" in err, err
+
+
+def test_snapshot_read_capped_at_declared_size(tmp_path: Path) -> None:
+    """(F3): a local-snapshot entry symlinked to /dev/zero (or the REAL file
+    replaced by a growing stream) is size-capped: manifest-declared bytes +
+    64KB slack is the maximum read; exceeded → sanitized ERROR naming the
+    cap, never an unbounded read / OOM."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    live = upstream / "docs/guide.md"
+    live.unlink()
+    live.symlink_to("/dev/zero")
+
+    result = _run(root, env)
+
+    assert result.returncode != 0 and result.stdout == "", result.stdout
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "declared size cap" in err, f"reason: {err!r}"
+    assert "/dev/zero" not in err  # sanitized reason, no device path noise
+
+
+def test_legacy_manifest_no_field_after_rename_is_error(tmp_path: Path) -> None:
+    """(F4 binding, negative): legacy manifest WITHOUT integrated_commit,
+    resolved=tip2 (fetched-only), references/ AND .cache/ RENAMED away (not
+    deleted) — absence of provenance never authenticates: ERROR fail-closed,
+    NEVER UNCHANGED, regardless of residue presence."""
+    root, upstream, source, bin_dir, env, pin1, tip2 = _fetched_unreviewed_fixture(tmp_path, with_integrated=False)
+    # Rename (not delete) the provenance dirs away — the pre-iteration-4
+    # first-run discriminator could be fooled by the disappearance.
+    stash = tmp_path / "stashed-dirs"
+    stash.mkdir()
+    shutil.move(str(root / "references"), str(stash / "references"))
+    (root / ".cache").mkdir()  # a cache dir exists, then is renamed away
+    shutil.move(str(root / ".cache"), str(stash / "cache"))
+
+    result = _run(root, env)
+
+    assert result.returncode != 0 and result.stdout == "", result.stdout
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "provenance record missing" in err, f"reason: {err!r}"
+    assert "never authenticates" in err, err
+    assert result.stdout.strip() != "UNCHANGED"
+
+
+def test_top_level_file_full_update(tmp_path: Path) -> None:
+    """(F5): a manifest containing a TOP-LEVEL file (path with no '/'; the
+    shipped manifest has several) must complete a full --update — pins the
+    caller-owned dup-fd fix (walk_dirs never returns the borrowed base)."""
+    root, upstream, source, bin_dir, env = _harden_fixture(tmp_path)
+    tip = "tip0000000000000000000000000000000000000002"
+    topdata = b"top-level diagram bytes\n"
+    top_tip = b"top-level diagram bytes changed\n"
+    manifest = {
+        "repository": REPO,
+        "default_branch": BRANCH,
+        "resolved_commit": PIN,
+        "integrated_commit": PIN,
+        "generated": "2026-10-24",
+        "files": [
+            {
+                "path": "diagram.mmd",
+                "bytes": len(topdata),
+                "sha256": hashlib.sha256(topdata).hexdigest(),
+                "git_blob_sha": _git_blob_sha(topdata),
+            },
+        ],
+    }
+    (upstream / "MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    (upstream / "diagram.mmd").write_bytes(topdata)
+    env["AAID_FAKE_TIP_SHA"] = tip
+    env["AAID_FAKE_TIP_OVERRIDES"] = json.dumps({"diagram.mmd": base64.b64encode(top_tip).decode()})
+
+    result = _run(root, env, "--update")
+
+    assert result.returncode == 0, f"--update stderr:\n{result.stderr}"
+    assert result.stdout.strip() == f"UPDATED {tip}", result.stdout
+    assert (upstream / "diagram.mmd").read_bytes() == top_tip
+    new_manifest = json.loads((upstream / "MANIFEST.json").read_text())
+    assert new_manifest["resolved_commit"] == tip
+    assert new_manifest["integrated_commit"] == PIN  # fetch never advances it
+    residue = list((root / ".cache").glob("staging-*")) if (root / ".cache").is_dir() else []
+    assert not residue, "staging residue on the top-level path"
+
+
+# ---------------------------------------------------------------------------
+# Iteration-5: snapshot intermediate-symlink nofollow walk (MEDIUM, pre-open
+# pivot) and fd-anchored staging cleanup (HIGH, substitution-at-any-point).
+# ---------------------------------------------------------------------------
+
+
+def test_snapshot_intermediate_symlink_refused(tmp_path: Path) -> None:
+    """(iteration-5 Fix 1): the INTERMEDIATE directory components of a
+    snapshot path are walked NOFOLLOW dirfd-relative — a pre-open pivot of
+    assets/upstream/docs to an EXTERNAL matching-hash tree is a sanitized
+    ERROR, never UNCHANGED (the old cap test only covered the FINAL
+    component)."""
+    root, upstream, source, bin_dir, env, pin1, tip2 = _fetched_unreviewed_fixture(tmp_path, with_integrated=True)
+    # Matching-hash external tree for docs/ (the pivot is 'invisible' to
+    # the hash discipline — the content is identical — so only the
+    # nofollow intermediate walk can detect it).
+    pivot_target = tmp_path / "pivot-mirror"
+    (pivot_target / "docs").mkdir(parents=True)
+    shutil.move(str(upstream / "docs/guide.md"), str(pivot_target / "docs/guide.md"))
+    shutil.move(str(upstream / "docs"), str(upstream / "docs-original"))
+    (upstream / "docs").symlink_to(pivot_target / "docs")
+
+    result = _run(root, env)
+
+    assert result.returncode != 0 and result.stdout == "", result.stdout
+    err = result.stderr.strip()
+    assert err.startswith("ERROR:"), err
+    assert "is a symlink or not a directory" in err, f"reason: {err!r}"
+    assert result.stdout.strip() != "UNCHANGED", "pre-open pivot laundered as UNCHANGED"
+
+
+def test_staging_cleanup_spared_on_preopen_substitution(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """(iteration-5 Fix 2, helper-level): with the staging NAME substituted
+    (checker owned dir renamed away, a FOREIGN POPULATED dir put under the
+    staging name) BEFORE cleanup, remove_staging must: (a) emit ONE
+    sanitized WARNING line naming the inode mismatch, and (b) SPARE the
+    foreign dir byte-for-byte. The embedded-python harness calls
+    remove_staging directly with fd identity anchored via the held
+    staging fd (a rename of the real staging away does not disturb it)."""
+    import os as _os
+
+    ns = _load_checker_python(tmp_path)
+    remove_staging = ns["remove_staging"]
+    cache = tmp_path / "cache-boundary"
+    cache.mkdir()
+    staged = cache / "staging-A"
+    (staged / "sub").mkdir(parents=True)
+    (staged / "sub" / "guide.md").write_bytes(b"staged bytes\n")
+    foreign = cache / "foreign-B"
+    foreign.mkdir()
+    (foreign / "trackfile.md").write_bytes(b"foreign bytes\n")
+    # Attacker substitution: real staging renamed away; foreign dir takes
+    # its NAME. The held staging fd still points at the REAL staging dir
+    # (rename does not change fd identity).
+    _os.rename(str(staged), str(cache / "stashed-A"))
+    _os.rename(str(foreign), str(staged))
+
+    cache_fd = _os.open(str(cache), _os.O_RDONLY | _os.O_DIRECTORY)
+    staging_fd = _os.open(str(cache / "stashed-A"), _os.O_RDONLY | _os.O_DIRECTORY)
+    ns["staging_name"] = "staging-A"
+    ns["staging_fd"] = staging_fd
+    ns["cache_fd"] = cache_fd
+    ns["retain_staging"] = False
+
+    remove_staging()
+
+    # Exactly ONE sanitized WARNING line, naming the inode mismatch.
+    captured = capsys.readouterr().err
+    warn_lines = [line for line in captured.splitlines() if line.startswith("WARNING:")]
+    assert len(warn_lines) == 1, f"exactly one warning required: {captured!r}"
+    assert "inode mismatch" in warn_lines[0], warn_lines[0]
+    assert "substituted mid-run" in warn_lines[0], warn_lines[0]
+
+    # Foreign dir survived byte-for-byte (now reachable under the staging-A
+    # name AFTER the checker's cleanup skipped); the real dir (stashed-A)
+    # also survives.
+    assert (staged / "trackfile.md").read_bytes() == b"foreign bytes\n"
+    assert (cache / "stashed-A" / "sub" / "guide.md").read_bytes() == b"staged bytes\n"
+    _os.close(cache_fd)  # staging_fd was closed by remove_staging
+
+
+def test_delete_contents_fd_recurses_and_refuses_symlink(tmp_path: Path) -> None:
+    """(iteration-5 Fix 2, helper-level): delete_contents_fd deletes nested
+    staged contents dirfd-relative and REFUSES a symlinked SUB-DIRECTORY
+    child (raise _RefuseCleanup, target spared) — deletion never follows a
+    link it cannot prove is checker-owned."""
+    import os as _os
+
+    ns = _load_checker_python(tmp_path)
+    delete_contents_fd = ns["delete_contents_fd"]
+    Refuse = ns["_RefuseCleanup"]
+    root_dir = tmp_path / "unit-root"
+    target = root_dir / "spared-target"
+    (target / "inner").mkdir(parents=True)
+    (target / "inner" / "file.md").write_bytes(b"precious\n")
+    staging = root_dir / "staging-A"
+    (staging / "docs").mkdir(parents=True)
+    (staging / "docs" / "guide.md").write_bytes(b"staged\n")
+    (staging / "top.md").write_bytes(b"top\n")
+    (staging / "bad-link").symlink_to(target)
+
+    staging_fd = _os.open(str(staging), _os.O_RDONLY | _os.O_DIRECTORY)
+    with pytest.raises(Refuse):
+        delete_contents_fd(staging_fd, "staging cleanup")
+    # The foreign symlink TARGET is byte-identical (nothing followed).
+    assert (target / "inner" / "file.md").read_bytes() == b"precious\n"
+    # The staged REAL contents that were deleted before raise time are gone
+    # as deleted (order-independent: at least the raise happened; the link
+    # name itself remains — never followed, target untouched).
+    assert (staging / "bad-link").is_symlink(), "planted link was removed instead of refused"
+    _os.close(staging_fd)
+
+
+def test_staging_cleanup_success_path_helper(tmp_path: Path) -> None:
+    """(iteration-5 Fix 2, helper-level): the happy path — matching
+    identity — deletes contents AND the top name dirfd-relative (no
+    residue)."""
+    import os as _os
+
+    ns = _load_checker_python(tmp_path)
+    remove_staging = ns["remove_staging"]
+    cache = tmp_path / "cache-boundary"
+    cache.mkdir()
+    staging = cache / "staging-A"
+    (staging / "docs").mkdir(parents=True)
+    (staging / "docs" / "guide.md").write_bytes(b"staged\n")
+
+    cache_fd = _os.open(str(cache), _os.O_RDONLY | _os.O_DIRECTORY)
+    staging_fd = _os.open(str(staging), _os.O_RDONLY | _os.O_DIRECTORY)
+    ns["staging_name"] = "staging-A"
+    ns["staging_fd"] = staging_fd
+    ns["cache_fd"] = cache_fd
+    ns["retain_staging"] = False
+
+    remove_staging()
+
+    assert not staging.exists(), "top staging name not removed"
+    residue = list(cache.iterdir())
+    assert residue == [], f"residue: {[str(p) for p in residue]}"
+    _os.close(cache_fd)  # staging_fd was closed by remove_staging
+
+
+# ---------------------------------------------------------------------------
+# Iteration-6: identity-verified enumeration→open/act in fd-anchored cleanup.
+# ---------------------------------------------------------------------------
+
+
+def test_identity_matches_helper(tmp_path: Path) -> None:
+    """(unit): the extracted comparison helper — same dev/ino → True;
+    differing dev or ino → False (differing dev also covered synthetically:
+    simple namespace stat stand-ins with distinct st_dev values)."""
+    import os as _os
+    from types import SimpleNamespace
+
+    ns = _load_checker_python(tmp_path)
+    identity_matches = ns["identity_matches"]
+    base = tmp_path / "id-root"
+    (base / "a").mkdir(parents=True)
+    (base / "b").mkdir(parents=True)
+    (base / "f1").write_bytes(b"x\n")
+    (base / "f2").write_bytes(b"y\n")
+    a = _os.stat(str(base / "a"))
+    b = _os.stat(str(base / "b"))
+    f1 = _os.stat(str(base / "f1"))
+    f2 = _os.stat(str(base / "f2"))
+    assert identity_matches(a, a)
+    assert identity_matches(f1, f1)
+    assert not identity_matches(a, b)
+    assert not identity_matches(f1, f2)
+    # Synthetic cross-device leg: differing st_dev → False even when ino
+    # matches (identity_matches reads only st_dev/st_ino).
+    busy = SimpleNamespace(st_dev=123, st_ino=f1.st_ino)
+    assert not identity_matches(f1, busy)
+    assert not identity_matches(busy, f1)
+    assert not identity_matches(busy, SimpleNamespace(st_dev=123, st_ino=f1.st_ino + 1))
+    assert identity_matches(busy, SimpleNamespace(st_dev=123, st_ino=f1.st_ino))
+
+
+def test_cleanup_child_substitution_refused(tmp_path: Path) -> None:
+    """(HIGH, helper-level): the child INODE enumerated via scandir fd is
+    replaced (rename-away + foreign populated dir under the SAME name)
+    between enumeration and open — the identity check refuses the cleanup:
+    _RefuseCleanup raised at the HELPER level only (the refusal path that
+    remove_staging converts into the ONE sanitized WARNING, itself covered
+    by the dedicated remove_staging substitution tests); the foreign tree
+    (and the stashed real staging subtree) survive byte-for-byte. The
+    interleave is modelled by patching open_dir_at in the extracted
+    namespace to perform the substitution exactly between the enumeration
+    stat and the real open."""
+    import os as _os
+    import shutil as _shutil
+
+    ns = _load_checker_python(tmp_path)
+    delete_contents_fd = ns["delete_contents_fd"]
+    Refuse = ns["_RefuseCleanup"]
+    real_open_dir_at = ns["open_dir_at"]
+    cache = tmp_path / "cache-boundary"
+    cache.mkdir()
+    staging = cache / "staging-A"
+    (staging / "docs").mkdir(parents=True)
+    (staging / "docs" / "guide.md").write_bytes(b"staged bytes\n")
+    foreign_tree = tmp_path / "foreign-tree"
+    foreign_tree.mkdir()
+    (foreign_tree / "trackfile.md").write_bytes(b"foreign bytes\n")
+    stash_path = staging / "docs-stashed"
+    foreign_dest = staging / "docs"
+
+    def substituting_open(base_fd, name, what):
+        # The attacker's between-enum-and-open move: rename the enumerated
+        # child away and move a foreign populated dir into the name.
+        if name == "docs":
+            _os.rename(str(staging / name), str(stash_path))
+            _shutil.copytree(str(foreign_tree), str(foreign_dest))
+        return real_open_dir_at(base_fd, name, what)
+
+    ns["open_dir_at"] = substituting_open
+
+    staging_fd = _os.open(str(staging), _os.O_RDONLY | _os.O_DIRECTORY)
+    with pytest.raises(Refuse):
+        delete_contents_fd(staging_fd, "staging cleanup")
+    _os.close(staging_fd)
+
+    # Foreign tree content survived inside the substituted name...
+    assert (foreign_dest / "trackfile.md").read_bytes() == b"foreign bytes\n"
+    # ...and the REAL staged subtree (renamed away) also survives.
+    assert (stash_path / "guide.md").read_bytes() == b"staged bytes\n"
