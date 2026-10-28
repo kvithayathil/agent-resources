@@ -24,7 +24,7 @@ check: lint typecheck deadcode dupes audit validate
 
 # Run ruff linter
 lint:
-    cd "{{fixdir}}/skills/scripts" && uv run ruff check .
+    cd "{{fixdir}}/skills/scripts" && uv run ruff check . && uv run ruff format --check .
 
 # Auto-fix ruff findings
 lint-fix:
