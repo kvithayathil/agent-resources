@@ -68,14 +68,14 @@ skills:
   - least-privilege
   license: MIT
   metadata:
-    version: 1.1.1
+    version: 1.1.4
     living: 'true'
     self-learning: 'true'
     self-updating: 'true'
     update-policy: periodic-remote-check
-    last-reviewed: '2026-11-02'
-  version: 1.1.1
-  token_estimate: 2821
+    last-reviewed: '2026-11-03'
+  version: 1.1.4
+  token_estimate: 2834
 - name: android-compose-ui
   description: 'Compose UI patterns for Android/KMP - stability, recomposition, side effects, lazy lists, animations, previews, accessibility, modifier extensions, and design system composables. Use this
     skill whenever writing or reviewing composables, optimizing recomposition, adding animations, creating previews, writing custom modifiers, structuring a design system, or making any Compose UI decision

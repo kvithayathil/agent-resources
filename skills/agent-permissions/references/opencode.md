@@ -205,6 +205,40 @@ redirection, pipes, and quoting variants leave real residual risk; treat
 command-level secret protection as best-effort and keep the `read` denies as the
 primary control.
 
+## Common build-tool allowlists
+
+Projects build with more than npm/cargo. When the intent is "pre-approve the
+project's build/test entry points", these whole-value wildcard patterns cover
+the common toolchains (place them AFTER the ask baseline, like all allows):
+
+```jsonc
+// Gradle (wrapper first — it is the pinned, project-controlled entry point)
+{ "action": "shell", "resource": "./gradlew *", "effect": "allow" },
+{ "action": "shell", "resource": "gradle *", "effect": "allow" },
+// Make / CMake / Go / Just
+{ "action": "shell", "resource": "make *", "effect": "allow" },
+{ "action": "shell", "resource": "cmake --build *", "effect": "allow" },
+{ "action": "shell", "resource": "go build *", "effect": "allow" },
+{ "action": "shell", "resource": "go test *", "effect": "allow" },
+{ "action": "shell", "resource": "go vet *", "effect": "allow" },
+{ "action": "shell", "resource": "just *", "effect": "allow" },
+// JS/Rust package runners
+{ "action": "shell", "resource": "npm run *", "effect": "allow" },
+{ "action": "shell", "resource": "bun run *", "effect": "allow" },
+{ "action": "shell", "resource": "cargo *", "effect": "allow" }
+```
+
+Caveats that always apply to this list (state them to the user):
+- **Every entry executes project-controlled code** — Makefiles, build.gradle,
+  CMakeLists, justfiles, package scripts, tests. These are convenience
+  allowances for a trusted repo, never "read-only".
+- Prefer the tool's narrow test/build/lint subcommands over the bare tool
+  where practical (`go build/test/vet`, not `go *`; `cmake --build`, not
+  `cmake *` — bare `cmake` also runs configure logic).
+- **Do not allowlist `go run *`** — it compiles and executes arbitrary source
+  on the spot; treat it like an interpreter.
+- Trailing ` *` also matches the bare command (`make`, `just`).
+
 ## Shell-pattern hazards
 
 Prefix and wildcard shell allows also match dangerous constructs — the pattern sees

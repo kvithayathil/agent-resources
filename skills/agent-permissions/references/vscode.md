@@ -55,6 +55,32 @@ https://code.visualstudio.com/docs/agents/reference/ai-settings. Re-verify with
   - `chat.tools.terminal.autoApprove.ignoreDefaultAutoApproveRules` (experimental)
     — **dropping the built-in deny rules is dangerous**; never recommend enabling it.
 
+### Common build-tool auto-approves
+
+For "pre-approve the project's build/test entry points" (regex entries; compound
+commands still need every subcommand to match a `true` entry):
+
+```jsonc
+{
+  "chat.tools.terminal.autoApprove": {
+    "/^(\\.\\/)?gradlew?\\s+(build|test|check)\\b/": true,
+    "/^make\\b/": true,
+    "/^cmake\\s+--build\\b/": true,
+    "/^go\\s+(build|test|vet)\\b/": true,
+    "/^just\\b/": true,
+    "/^(npm|bun|pnpm|yarn)\\s+(run\\s+)?(test|lint|build)\\b/": true,
+    "/^cargo\\s+(build|test|check)\\b/": true
+  }
+}
+```
+
+Same caveats as the other tools: every entry executes project-controlled code
+(Makefiles, build.gradle, CMakeLists, justfiles, package scripts, tests) —
+convenience for a trusted repo, never "read-only"; prefer narrow subcommands
+over bare `cmake`/`go`; do not auto-approve `go run` (compiles and executes
+arbitrary source). And remember `true` here auto-approves only — a `false`
+entry forces approval, it never blocks.
+
 **Setting-key caution**: a misspelled setting key is silently ignored, not reported
 — verify key names against the settings UI or the upstream snapshot before trusting
 a config.

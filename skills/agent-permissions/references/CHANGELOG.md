@@ -3,6 +3,57 @@
 All substantive edits to this skill (version bumps, promoted lessons, reference
 refreshes after upstream drift) are recorded here with trigger and change.
 
+## [1.1.4] — 2026-11-03
+
+Rollout-review feedback (human review of the evaluation results):
+
+- All three tool references (opencode.md, zed.md, vscode.md): added a "Common
+  build-tool allowlists" section — ready-to-adapt patterns for
+  gradle/gradlew, make, cmake --build, go build/test/vet, just, npm/bun/pnpm/
+  yarn run, cargo — in each tool's native syntax (whole-value wildcards /
+  anchored Rust regex / regex entries). Uniform caveats: every entry executes
+  project-controlled code (never "read-only"), prefer narrow subcommands over
+  bare tools, and never allowlist `go run` (arbitrary source execution, like
+  an interpreter). Previously the examples leaned on npm/cargo/git only.
+- LESSONS_LEARNED.md: candidate lesson added (build-tool coverage bias).
+  Validations: 1.
+
+## [1.1.3] — 2026-11-03
+
+Eval-driven reference fix (baseline-vs-skill contradiction surfaced by the
+evaluation loop; no with-skill assertion failed — all 20 passed):
+
+- references/zed.md Secrets defaults: documented the top-level `private_files`
+  setting — default-active secret globs (`**/.env*`, `**/*.pem`, `**/*.key`,
+  `**/*.cert`, `**/*.crt`, `**/secrets.yml`) the section previously omitted
+  entirely. Verified against the zed-all-settings snapshot (already present in
+  the 2026-11-02 baseline — a reference-coverage gap, not upstream drift;
+  `check-upstream.sh --check` all FRESH, no refresh needed). Honest caveats
+  kept: tool-permissions docs don't mention it and its enforcement points are
+  undocumented — never the sole read-protection layer; pair with explicit
+  `tool_permissions` denies.
+- LESSONS_LEARNED.md: candidate lesson added (check the tool's full settings
+  reference for adjacent protection mechanisms; the permissions doc alone
+  under-reports). Validations: 1.
+
+## [1.1.2] — 2026-11-03
+
+Dogfood-driven reference fixes (first real-use evidence; no lesson met the
+≥3-validation promotion rule — both candidate lessons remain at 1 validation):
+
+- references/zed.md worked example: edit_file/write_file secrets deny sets made
+  symmetric — edit_file gained `id_rsa`, write_file gained `.netrc`/`.npmrc`
+  (the example previously taught lopsided protection). Found during the first
+  real Zed-path run; the run composed the full set on both tools manually.
+- references/zed.md worked example: added explicit `delete_path` confirm entry
+  and effective-policy wording that path-mutation tools
+  (`delete_path`/`move_path`/`copy_path`/`create_directory`) inherit the global
+  default silently unless listed — decide their posture explicitly. Surfaced by
+  a user deletion-semantics question the example could not answer.
+- No changes to SKILL.md gates, workflow, or trigger text; no promotion into
+  instruction text. LESSONS_LEARNED.md gained two candidate lessons (both
+  validations: 1).
+
 ## [1.1.1] — 2026-11-02
 
 Third review round — validation/lint correctness fixes and doc corrections (patch):

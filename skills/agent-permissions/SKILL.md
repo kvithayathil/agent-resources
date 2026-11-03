@@ -31,12 +31,12 @@ tags:
   - least-privilege
 license: MIT
 metadata:
-  version: "1.1.1"
+  version: "1.1.4"
   living: "true"
   self-learning: "true"
   self-updating: "true"
   update-policy: "periodic-remote-check"
-  last-reviewed: "2026-11-02"
+  last-reviewed: "2026-11-03"
 ---
 
 # Agent Permissions Authoring (OpenCode V2 / VS Code / Zed)

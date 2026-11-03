@@ -111,6 +111,18 @@ them in every baseline (gate 4) and extend the set to the common credential file
 `id_rsa*`, `*.p12`, `*.pfx`, `.netrc`, `.npmrc`, plus `secrets/` and `.secrets/`
 directories (`(^|/)\.?secrets/` covers both in one pattern).
 
+Separately, the top-level `private_files` setting (all-settings reference) holds
+glob patterns marking files private, and its defaults are **active without any
+configuration**: `["**/.env*", "**/*.pem", "**/*.key", "**/*.cert", "**/*.crt",
+"**/secrets.yml"]`. Two honest caveats: the tool-permissions documentation does
+not mention `private_files` at all, and its enforcement points (which agent
+tools consult it) are not documented there either — do not treat it as your
+only read-protection layer. When tightening secrets in Zed: extend
+`private_files` with the missing credential globs (`**/id_rsa*`, `**/*.p12`,
+`**/*.pfx`, `**/.netrc`, `**/.npmrc`, `**/.secrets/**`) AND write the explicit
+`tool_permissions` denies; state both to the user, and verify the combined
+behavior in Zed before describing it as protection.
+
 ## Worked example
 
 Intent: allow cargo/npm/git view+build commands, deny destructive `rm -rf`, confirm
@@ -143,6 +155,7 @@ Intent: allow cargo/npm/git view+build commands, deny destructive `rm -rf`, conf
             { "pattern": "\\.env($|\\.)" },
             { "pattern": "\\.(pem|key|p12|pfx)$", "case_sensitive": false },
             { "pattern": "(^|/)\\.?secrets/" },
+            { "pattern": "(^|/)id_rsa" },
             { "pattern": "(^|/)\\.netrc$" },
             { "pattern": "(^|/)\\.npmrc$" }
           ]
@@ -153,9 +166,12 @@ Intent: allow cargo/npm/git view+build commands, deny destructive `rm -rf`, conf
             { "pattern": "\\.env($|\\.)" },
             { "pattern": "\\.(pem|key|p12|pfx)$", "case_sensitive": false },
             { "pattern": "(^|/)\\.?secrets/" },
-            { "pattern": "(^|/)id_rsa" }
+            { "pattern": "(^|/)id_rsa" },
+            { "pattern": "(^|/)\\.netrc$" },
+            { "pattern": "(^|/)\\.npmrc$" }
           ]
         },
+        "delete_path": { "default": "confirm" },
         "fetch": { "default": "confirm" },
         "mcp:github:create_issue": { "default": "confirm" }
       }
@@ -166,11 +182,38 @@ Intent: allow cargo/npm/git view+build commands, deny destructive `rm -rf`, conf
 
 Effective policy: the allowlisted git/cargo/npm commands auto-run (per-subcommand
 parsing included), `sudo` and `git push` confirm, home-directory `rm -rf` denied
-(plus Zed's built-in rules on top), secret-file edits AND writes denied, fetch and
+(plus Zed's built-in rules on top), secret-file edits AND writes denied (the same
+full credential set on both tools — keep them symmetric), `delete_path` confirms
+explicitly instead of silently inheriting the global default (do the same for
+`move_path`/`copy_path`/`create_directory` when they matter to you), fetch and
 the listed MCP tool confirm. **These allows are NOT read-only**: `npm run` and
 `cargo build`/`test` execute project-controlled code (package scripts, build
 scripts, tests), and the git allows admit output-writing flags — see
 [Shell-pattern hazards](#shell-pattern-hazards).
+
+## Common build-tool allowlists
+
+The same "pre-approve build/test entry points" intent in Zed's anchored Rust
+regex (case-insensitive by default; `\b` after the verb avoids prefix matches):
+
+```json
+[
+  { "pattern": "^(\\.\\/)?gradlew?\\s" },
+  { "pattern": "^make\\b" },
+  { "pattern": "^cmake\\s+--build\\b" },
+  { "pattern": "^go\\s+(build|test|vet)\\b" },
+  { "pattern": "^just\\b" },
+  { "pattern": "^(npm|bun|pnpm|yarn)\\s+(run\\s+)?(test|lint|build)\\b" },
+  { "pattern": "^cargo\\s+(build|test|check|clippy|fmt)\\b" }
+]
+```
+
+Caveats that always apply (state them to the user): every entry executes
+project-controlled code (Makefiles, build.gradle, CMakeLists, justfiles,
+package scripts, tests) — convenience for a trusted repo, never "read-only".
+Prefer narrow subcommands (`go (build|test|vet)`, not `^go\\b`; `cmake
+--build`, not bare `cmake`). **Do not allowlist `go run`** — it compiles and
+executes arbitrary source; treat it like an interpreter.
 
 ## Shell-pattern hazards
 
