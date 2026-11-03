@@ -17,13 +17,13 @@ skills:
   - methodology
   license: MIT — see references/ATTRIBUTION.md for the bundled attribution record
   metadata:
-    version: 1.0.1
+    version: 1.0.2
     living: 'true'
     self-learning: 'true'
     self-updating: 'true'
     update-policy: evolve-on-evidence
     last-reviewed: '2026-10-24'
-  version: 1.0.1
+  version: 1.0.2
   token_estimate: 1686
   source:
     source: https://github.com/dawid-dahl-umain/augmented-ai-development
@@ -31,6 +31,51 @@ skills:
     source_type: gh-api
     provider: manual
     installed_at: '2026-10-24'
+- name: agent-permissions
+  description: 'Author, review, and tighten PROJECT-SCOPED permission and approval configurations for AI coding agents across three tools: OpenCode V2 (opencode.jsonc permissions array), VS Code Copilot
+    agent mode (.vscode/settings.json chat.tools auto-approve), and Zed Agent Panel (.zed/settings.json agent.tool_permissions). Use whenever configuring, auditing, tightening, or reviewing agent permissions,
+    approvals, auto-approve rules, allow/deny lists, or tool policies in these tools; when the user asks to stop the agent from running dangerous commands, protect .env/secrets/private keys, block git push,
+    require confirmation for sudo/rm -rf, or lock down agent tool access; and always before writing any agent permission config file. Enforces least privilege, deny-by-default for secrets, and a mandatory
+    human-approved diff before every write. This skill authors security artifacts — never use it to bypass or loosen safety rules.'
+  path: agent-permissions
+  triggers:
+  - agent permissions
+  - permission config
+  - auto-approve
+  - auto approve rules
+  - allowlist
+  - deny rule
+  - allow/deny
+  - approval policy
+  - tool permissions
+  - tool_permissions
+  - opencode.jsonc
+  - .vscode/settings.json
+  - .zed/settings.json
+  - chat.tools.terminal.autoApprove
+  - stop agent dangerous commands
+  - protect .env
+  - block git push
+  - require confirmation sudo
+  - least privilege
+  tags:
+  - security
+  - permissions
+  - agent-config
+  - opencode
+  - vscode
+  - zed
+  - least-privilege
+  license: MIT
+  metadata:
+    version: 1.1.4
+    living: 'true'
+    self-learning: 'true'
+    self-updating: 'true'
+    update-policy: periodic-remote-check
+    last-reviewed: '2026-11-03'
+  version: 1.1.4
+  token_estimate: 2834
 - name: android-compose-ui
   description: 'Compose UI patterns for Android/KMP - stability, recomposition, side effects, lazy lists, animations, previews, accessibility, modifier extensions, and design system composables. Use this
     skill whenever writing or reviewing composables, optimizing recomposition, adding animations, creating previews, writing custom modifiers, structuring a design system, or making any Compose UI decision
@@ -694,6 +739,8 @@ skills:
   version: 0.1.0
   token_estimate: 1021
 tag_index:
+  agent-config:
+  - agent-permissions
   agent-dx:
   - design-md
   agent-hooks:
@@ -759,18 +806,24 @@ tag_index:
   - grill-me
   layouts:
   - android-layouts
+  least-privilege:
+  - agent-permissions
   maintenance:
   - provenance-tracking
   methodology:
   - aaid
   - vdd
   - vsdd
+  opencode:
+  - agent-permissions
   owasp:
   - security-best-practices
   patterns:
   - modern-git-patterns
   performance:
   - android-layouts
+  permissions:
+  - agent-permissions
   planning:
   - grill-me
   - prd-to-issues
@@ -799,6 +852,7 @@ tag_index:
   secure-design:
   - security
   security:
+  - agent-permissions
   - security
   - security-best-practices
   - security-scan
@@ -835,6 +889,8 @@ tag_index:
   - modern-git-patterns
   vetting:
   - skill-vetter
+  vscode:
+  - agent-permissions
   web:
   - security-best-practices
   workflow:
@@ -842,4 +898,6 @@ tag_index:
   - modern-git-patterns
   xml:
   - android-layouts
+  zed:
+  - agent-permissions
 
